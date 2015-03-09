@@ -1,2 +1,0 @@
-# QwatchCapture
-Web camera capture
