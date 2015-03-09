@@ -5,12 +5,12 @@
 #+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:nil arch:headline
 #+OPTIONS: author:t c:nil creator:comment d:(not "LOGBOOK") date:t
 #+OPTIONS: e:t email:nil f:t inline:t num:t p:nil pri:nil stat:t
-#+OPTIONS: tags:t tasks:t tex:t timestamp:t toc:t todo:t |:t
+#+OPTIONS: tags:t tasks:t tex:t timestamp:t toc:nil todo:t |:t
 #+CREATOR: Emacs 24.4.1 (Org mode 8.2.10)
 #+DESCRIPTION:
 #+EXCLUDE_TAGS: noexport
 #+KEYWORDS:
-#+LANGUAGE: en
+#+LANGUAGE: ja
 #+SELECT_TAGS: export
 
 * 何をするものか？
@@ -22,6 +22,17 @@
   - IO-DATA WLCAM Qwatchシリーズ
   - Python 2.7
   - MacOS X
+
+* やってること
+
+  - wgetで画像を取ってきて、その時の時刻でリネームする
+  - ユーザ情報は、ConfigParserモジュールを使って外部ファイルから読むことにする
+
+#+begin_src bash
+$ wget --http-user=USER --http-password=PASS http://QwatchIPADDRESS/snapshot.jpg
+$ mv snapshot.jpg snapshots/YYYY-MMDD-hhmm-ss.jpg
+#+end_src
+
 
 * 使い方
 
