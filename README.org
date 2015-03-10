@@ -19,7 +19,7 @@
 
 * 動作環境
 
-  - IO-DATA WLCAM Qwatchシリーズ
+  - [[http://www.iodata.jp/product/lancam/lancam/ts-wlcam/][IO-DATA TS-WLCAMシリーズ Qwatch]]
   - Python 2.7
   - MacOS X
 
