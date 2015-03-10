@@ -1,0 +1,5 @@
+# MAILTO=yourname@yourdomain
+# SHELL=/bin/bash
+
+## Copy the line below and change it
+# */10 * * * * `cd ABS-PATH-TO-QwatchCapture-DIR/ && ./qwatch.py CONFIG.cfg`
