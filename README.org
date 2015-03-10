@@ -45,10 +45,25 @@ $ mv snapshot.jpg snapshots/YYYY-MMDD-hhmm-ss.jpg
    - example.cfgをコピーしてdefault.cfgを新規作成する
    - default.cfgを自分の用途にあったように書き換える
 
+*** 設定ファイルの書式
+
+#+begin_src config
+[Capture]
+uri = http://QWATCHADDRESS/snapshot.jpg
+user = USER
+pass = PASS
+#+end_src
+
 ** 実行する
 
   #+begin_src bash
   $ python qwatch.py
   #+end_src
+
+** 画像の保存先
+
+   - ファイル名は「snapshots/YYYY-MMDD-hhmm-ss.jpg」
+   - カレントディレクトリに「snapshots/」を作成する
+   - 公開ディレクトリへのシンボリックリンクでも良い
 
 ** cronに登録する
