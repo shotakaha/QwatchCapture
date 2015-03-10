@@ -16,8 +16,8 @@ class Config(object):
         sys.stderr.write('ERROR: (>w<)\n')
         sys.exit()
     else:
+        sys.stderr.write('Reading default.cfg.\n')
         config.read('default.cfg')
-
 
     uri = config.get('Capture', 'uri')
     user = config.get('Capture', 'user')
@@ -25,6 +25,7 @@ class Config(object):
 
 ##################################################
 class QwatchCapture(object):
+    ##############################
     def __init__(self, user, passwd, uri):
         '''
         Set parameters.
@@ -33,22 +34,34 @@ class QwatchCapture(object):
         self.passwd = passwd
         self.uri = uri
 
+    ##############################
     def set_tries(self, tries):
         self.tries = tries
 
+    ##############################
     def set_timeout(self, timeout):
         self.timeout = timeout
 
+    ##############################
     def set_logfile(self, logfile):
         self.logfile = logfile
 
+    ##############################
     def run(self):
         '''
         $ wget --http-user=USER --http-password=PASS URI
-        $ mv snapshot.jpg YYYY-MM-DD-hh-mm-ss.jpg
+        $ mv snapshot.jpg snapshots/YYYY-MMDD-hhmm-ss.jpg
         '''
 
-        param = {'user' : self.user,
+        if not os.path.isdir('snapshots'):
+            sys.stderr.write('ERROR: no snapshots/ directory.\n')
+            sys.stderr.write('ERROR: create or make symlink for snapshots/ directory manually.\n')
+            sys.stderr.write('ERROR: (>w<)\n')
+            sys.stderr.write('HINT1: type "mkdir snapshots"\n')
+            sys.stderr.write('HINT2: type "ln -s PATH_TO_ANOTHER_SNAPSHOTS snapshots"\n')
+            sys.exit()
+
+        param = {'user':self.user,
                  'passwd':self.passwd,
                  'uri':self.uri,
                  'tries':self.tries,
@@ -60,20 +73,26 @@ class QwatchCapture(object):
 
         wget = 'wget --http-user={user} --http-password={passwd} -T {timeout} -t {tries} -a {logfile} {uri}'
         mv = 'mv {snapfile} {ofn}'
+
+        message = 'Executing wget ... See {logfile} for detail.\n'.format(**param)
+        sys.stderr.write(message)
         os.system(wget.format(**param))
+
         if os.path.exists('snapshot.jpg'):
             os.system(mv.format(**param))
 
-    def loop(self):
-        pass
 
 ##################################################
 if __name__ == '__main__':
 
     usage = 'usage: %s [-tT]' % sys.argv[0]
 
-    desc = 'プログラムの簡単な説明'
-    epi = 'ヘルプの最後に付ける説明'
+    desc = 'Image capture for Qwatch webcamera.'
+    epi = 'What you have to prepare:\n'
+    epi += '  1) Prepare default.cfg based on example.cfg.\n'
+    epi += '  2) Prepare snapshots/ directory manually.\n'
+    epi += 'For periodic capture:\n'
+    epi += '  3) Add to cron.\n'
 
     parser = argparse.ArgumentParser(description=desc,
                                      epilog=epi,
