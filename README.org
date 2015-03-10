@@ -20,6 +20,7 @@
 * 動作環境
 
   - [[http://www.iodata.jp/product/lancam/lancam/ts-wlcam/][IO-DATA Qwatch TS-WLCAMシリーズ]]
+    - USBケーブルしか付属しないので、TS-WLCAM用ADアダプター（[[http://www.ioplaza.jp/shop/g/g60-TVCXGA2-001/][TVC-XGA2]]）があるとよい
   - Python 2.7
   - MacOS X
 
