@@ -68,12 +68,12 @@ pass = PASS
 
 ** cronに登録する
 
-   - cronの編集には「crontab」コマンドを使用する（きっと直接編集しないほうがいい）
-   - 使うオプションは下の２種類で十分
+   - cronの編集には「crontab」コマンドを使用する
+
 
 #+begin_src bash
-$ crontab -l    ## Read crontab
-$ crontab -e    ## Edit crontab
+$ crontab crontab.example   ## Read crontab from file
+$ crontab -l                ## Check crontab
 #+end_src
 
 *** cronの書式
@@ -86,4 +86,11 @@ $ crontab -e    ## Edit crontab
 
 #+begin_src text
 */10 * * * * `ABS-PATH-TO−QwatchCapture/qwatch.py config.cfg`
+#+end_src
+
+*** ログの確認
+#+begin_src bash
+$ tail /var/log/syslog
+$ sudo ls -ltr /var/spool/nullmailer/queue/
+$ sudo less -ltr /var/spool/nullmailer/queue/SOMRNUMBER
 #+end_src
