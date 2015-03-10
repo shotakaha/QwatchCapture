@@ -1,34 +1,20 @@
 # coding: utf-8
 
-import ConfigParser
 import os
 import sys
 from time import localtime, strftime
 import argparse
-
-##################################################
-class Config(object):
-    config = ConfigParser.RawConfigParser()
-
-    if not os.path.exists('default.cfg'):
-        sys.stderr.write('ERROR: no config file.\n')
-        sys.stderr.write('ERROR: create new config using example.cfg.\n')
-        sys.stderr.write('ERROR: (>w<)\n')
-        sys.exit()
-    else:
-        sys.stderr.write('Reading default.cfg.\n')
-        config.read('default.cfg')
-
-    uri = config.get('Capture', 'uri')
-    user = config.get('Capture', 'user')
-    passwd = config.get('Capture', 'pass')
+import ConfigParser
 
 ##################################################
 class QwatchCapture(object):
+    '''
+    Image capture for Qwatch webcamera.
+    '''
     ##############################
     def __init__(self, user, passwd, uri):
         '''
-        Set parameters.
+        Set Qwatch parameters.
         '''
         self.user = user
         self.passwd = passwd
@@ -36,19 +22,29 @@ class QwatchCapture(object):
 
     ##############################
     def set_tries(self, tries):
+        '''
+        Set number of times to retry.
+        '''
         self.tries = tries
 
     ##############################
     def set_timeout(self, timeout):
+        '''
+        Set timeout duration in SECONDS.
+        '''
         self.timeout = timeout
 
     ##############################
     def set_logfile(self, logfile):
+        '''
+        Set log output file for wget.
+        '''
         self.logfile = logfile
 
     ##############################
     def run(self):
         '''
+        Original shell command is:
         $ wget --http-user=USER --http-password=PASS URI
         $ mv snapshot.jpg snapshots/YYYY-MMDD-hhmm-ss.jpg
         '''
@@ -85,8 +81,6 @@ class QwatchCapture(object):
 ##################################################
 if __name__ == '__main__':
 
-    usage = 'usage: %s [-tT]' % sys.argv[0]
-
     desc = 'Image capture for Qwatch webcamera.'
     epi = 'What you have to prepare:\n'
     epi += '  1) Prepare default.cfg based on example.cfg.\n'
@@ -97,33 +91,53 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=desc,
                                      epilog=epi,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-
+    parser.add_argument(dest='conffile',
+                        nargs=1,
+                        help='specify CONFIGFILE')
     parser.add_argument('-t', '--tries',
-                         dest='number',
-                         type=int,
-                         help='set number of retries to NUMBER (0 unlimits)')
+                        dest='number',
+                        type=int,
+                        help='set number of retries to NUMBER (0 unlimits)')
     parser.add_argument('-T', '--timeout',
-                         dest='seconds',
-                         type=int,
-                         help='set all timeout values to SECONDS')
+                        dest='seconds',
+                        type=int,
+                        help='set all timeout values to SECONDS')
     parser.add_argument('-a', '--append-log',
-                         dest='logfile',
-                         help='append messages to LOGFILE')
-
-    ## オプションのデフォルトを一括設定する
-    parser.set_defaults(number=1,
+                        dest='logfile',
+                        help='append messages to LOGFILE')
+    ## Set option defaults
+    parser.set_defaults(conffile='example.cfg',
+                        number=1,
                         seconds=10,
                         logfile='qwatch.log')
-
-    ## オプション、引数を引き出す
+    ## Get args and options
     args = parser.parse_args()
 
-    qw = QwatchCapture(user=Config.user,
-                       passwd=Config.passwd,
-                       uri=Config.uri)
+    ## Read config
+    config = ConfigParser.RawConfigParser()
+    if not os.path.exists(args.conffile[0]):
+        sys.stderr.write('ERROR: no config file.\n')
+        sys.stderr.write('ERROR: create new config using example.cfg.\n')
+        sys.stderr.write('ERROR: (>w<)\n')
+        sys.exit()
+    else:
+        sys.stderr.write('Reading {0}.\n'.format(args.conffile[0]))
+        config.read(args.conffile[0])
+
+
+    uri = config.get('Capture', 'uri')
+    user = config.get('Capture', 'user')
+    passwd = config.get('Capture', 'pass')
+    sys.stderr.write('Destination {0}.\n'.format(uri))
+
+    ## Set QwatchCapture
+    qw = QwatchCapture(user=user,
+                       passwd=passwd,
+                       uri=uri)
 
     qw.set_tries(args.number)
     qw.set_timeout(args.seconds)
     qw.set_logfile(args.logfile)
 
+    ## Run QwatchCapture
     qw.run()
