@@ -67,3 +67,23 @@ pass = PASS
    - 公開ディレクトリへのシンボリックリンクでも良い
 
 ** cronに登録する
+
+   - cronの編集には「crontab」コマンドを使用する（きっと直接編集しないほうがいい）
+   - 使うオプションは下の２種類で十分
+
+#+begin_src bash
+$ crontab -l    ## Read crontab
+$ crontab -e    ## Edit crontab
+#+end_src
+
+*** cronの書式
+
+#+begin_src text
+分 時 日 月 曜日 実行コマンド
+#+end_src
+
+*** 10分おきにキャプチャする場合（みかくにん）
+
+#+begin_src text
+*/10 * * * * `ABS-PATH-TO−QwatchCapture/qwatch.py config.cfg`
+#+end_src
