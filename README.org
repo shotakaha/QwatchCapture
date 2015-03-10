@@ -26,13 +26,17 @@
 * やってること
 
   - wgetで画像を取ってきて、その時の時刻でリネームする
-  - ユーザ情報は、ConfigParserモジュールを使って外部ファイルから読むことにする
 
 #+begin_src bash
 $ wget --http-user=USER --http-password=PASS http://QwatchIPADDRESS/snapshot.jpg
 $ mv snapshot.jpg snapshots/YYYY-MMDD-hhmm-ss.jpg
 #+end_src
 
+** プラスアルファ
+
+   - ユーザ情報は、ConfigParserモジュールを使って外部ファイルから読むことにする
+   - アクセスできなかった場合にタイムアウトする秒数、リトライする回数はwgetのオプションをラップする
+   - ログファイルもwgetのオプションを使う
 
 * 使い方
 

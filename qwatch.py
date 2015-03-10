@@ -7,13 +7,17 @@ from time import localtime, strftime
 import argparse
 
 ##################################################
-class Config:
+class Config(object):
     config = ConfigParser.RawConfigParser()
 
-    if os.path.exists('default.cfg'):
-        config.read('default.cfg')
+    if not os.path.exists('default.cfg'):
+        sys.stderr.write('ERROR: no config file.\n')
+        sys.stderr.write('ERROR: create new config using example.cfg.\n')
+        sys.stderr.write('ERROR: (>w<)\n')
+        sys.exit()
     else:
-        config.read('example.cfg')
+        config.read('default.cfg')
+
 
     uri = config.get('Capture', 'uri')
     user = config.get('Capture', 'user')
