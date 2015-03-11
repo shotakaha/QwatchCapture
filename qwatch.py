@@ -86,7 +86,8 @@ class QwatchCapture(object):
             os.renames(ss, '{jpgfile}'.format(**conf))
         except OSError as (errno, strerror):
             print 'OS error({0}): {1}'.format(errno, strerror)
-
+        else:
+            sys.stderr.write('Renamed ... Done.\n')
 
 ##################################################
 if __name__ == '__main__':
@@ -102,7 +103,7 @@ if __name__ == '__main__':
                                      epilog=epi,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(dest='conffile',
-                        nargs=1,
+                        nargs='+',
                         help='specify CONFIGFILE')
     parser.add_argument('-t', '--tries',
                         dest='number',
@@ -123,41 +124,35 @@ if __name__ == '__main__':
     ## Get args and options
     args = parser.parse_args()
 
-    ## Read config
+    ## Print config files
+    for f in args.conffile:
+        print f, os.path.exists(f)
+
+    ## Read config files
     config = ConfigParser.SafeConfigParser()
-
-    conffile = args.conffile[0]
-    if not os.path.exists(conffile):
-        sys.stderr.write('ERROR: No "{0}" found.\n'.format(conffile))
-        sys.stderr.write('ERROR: Create new conf file using qwconf.example.\n')
-        sys.stderr.write('ERROR: (>w<)\n')
-        sys.exit()
-
-    sys.stderr.write('Reading {0}.\n'.format(conffile))
-    config.read(conffile)
+    config.read(args.conffile)
 
     ## Set QwatchCaptures
-    qws = []
     sections = config.sections()
     for section in sections:
-        name = config.get(section, 'name')
+        name = section
         uri = config.get(section, 'uri')
         user = config.get(section, 'user')
         passwd = config.get(section, 'pass')
         base = config.get(section, 'base')
+
         ## Init Qwatch
         qw = QwatchCapture(name=name,
                            user=user,
                            passwd=passwd,
                            uri=uri,
                            base=base)
+
         ## Set Options
         qw.set_tries(args.number)
         qw.set_timeout(args.seconds)
         qw.set_logfile(args.logfile)
-        ## Add to list
-        qws.append(qw)
 
-    for qw in qws:
+        ## Run
         print qw
         qw.run()
