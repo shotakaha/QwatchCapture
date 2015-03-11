@@ -20,9 +20,10 @@
 * 動作環境
 
   - [[http://www.iodata.jp/product/lancam/lancam/ts-wlcam/][IO-DATA Qwatch TS-WLCAMシリーズ]]
-    - USBケーブルしか付属しないので、TS-WLCAM用ADアダプター（[[http://www.ioplaza.jp/shop/g/g60-TVCXGA2-001/][TVC-XGA2]]）があるとよい
-  - Python 2.7
-  - MacOS X
+    - USBケーブルしか付属してないので注意
+    - TS-WLCAM用ADアダプター（[[http://www.ioplaza.jp/shop/g/g60-TVCXGA2-001/][TVC-XGA2]]）があるとよい
+  - MacOS X(10.10 Yosemite) + Python 2.7.9
+  - Ubuntu (14.04LTS) + Python 2.7.6 + ffmpeg 2.6
 
 * やってること
 
@@ -33,9 +34,20 @@ $ wget --http-user=USER --http-password=PASS http://QwatchIPADDRESS/snapshot.jpg
 $ mv snapshot.jpg snapshots/YYYY-MMDD-hhmm-ss.jpg
 #+end_src
 
+  - 画像がある程度たまったら、早送り動画にする
+
+#+begin_src bash
+$ ffmpeg -y -f image2 -r 15 -pattern_type glob -i 'snapshots/*.jpg' -r 15 -an -vcodec libx264 -pix_fmt yuv420p video.mp4
+$ mv video.mp4 snapshots/
+#+end_src
+
+  - これらの動作をcronに食べさせて、定期的に実行している
+
+
 ** もうちょいやってること
 
-   - ユーザ情報（USER、PASS）をファイル中に書くのは嫌なので、ConfigParserモジュールを使って外部ファイルから読むことにする
+   - ユーザ情報（USER、PASS）をファイル中に書くのは嫌
+     - PythonのConfigParserモジュールを使って外部ファイルから読むことにする
    - 以下のwgetのオプションを使えるようにしている
      - アクセスできなかった場合にタイムアウトする秒数（デフォルト 10秒に設定）
      - タイムアウトした際にリトライする回数（デフォルト 1回に設定）
@@ -63,23 +75,26 @@ pass = PASS
    - configファイルを引数にして実行する
 
   #+begin_src bash
-  $ python qwatch.py CONFIF.cfg
+  $ ./qwatch.py CONFIF.cfg
   #+end_src
 
 ** 画像の保存先
 
    - ファイル名は「snapshots/YYYY-MMDD-hhmm-ss.jpg」
    - カレントディレクトリに「snapshots/」を作成する
-   - 公開ディレクトリへのシンボリックリンクでも良い
+   - 公開しているウェブページへのシンボリックリンクでも良い
 
 ** cronに登録する
 
    - cronの編集には「crontab」コマンドを使用する
-
+     - いろいろ調べると、cronファイルを作成し、crontabに食べさせるのがよいらしい
+     - /etc/cron.d/の直接編集、「crontab -e」による編集はしないほうが安全
+   - crontabは上書きされてしまうので、既に設定がある人はリダイレクト使ってバックアップを取るといいかも
 
 #+begin_src bash
 $ crontab crontab.example   ## Read crontab from file
 $ crontab -l                ## Check crontab
+$ crontab -l > cron.bk      ## Easy back up
 #+end_src
 
 *** cronの書式
@@ -88,15 +103,35 @@ $ crontab -l                ## Check crontab
 分 時 日 月 曜日 実行コマンド
 #+end_src
 
-*** 10分おきにキャプチャする場合（みかくにん）
+*** 10分ごとに画像をキャプチャする場合
 
 #+begin_src text
-*/10 * * * * `ABS-PATH-TO−QwatchCapture/qwatch.py config.cfg`
+QWDIR=     ## 各自で設定
+QWCONFIG=  ## 各自で設定
+*/10 * * * * `cd $QWDIR && ./qwatch.py $QWCONFIG`
 #+end_src
 
+*** 1時間ごとにタイムラプス動画を作る場合
+
+#+begin_src text
+QWDIR=     ## 各自で設定
+
+FFMPEG_OPT_IN="-y -f image2 -r 15"                          ## 入力ファイルオプション
+FFMPEG_OPT_OUT="-r 15 -an -vcodec libx264 -pix_fmt yuv420p" ## 出力ファイルオプション
+FFMPEG_OUT_FILE=video.mp4    ## 出力ファイル名
+
+5 * * * * `cd $QWDIR && ffmpeg ${FFMPEG_OPT_IN} -pattern_type glob -i 'snapshots/*.jpg' ${FFMPEG_OPT_OUT} ${FFMPEG_OUTFILE} && mv ${FFMPEG_OUTFILE} snapshots/`
+#+end_src
+
+    - 「-pettern_type glob -i 'snapshots/*.jpg'」の部分でどうしてもエラーが出てしまうので、入力オプションから外し、ベタ書きしている
+    - キャプチャの実行と時間をずらしてある（毎時５分）
+
 *** ログの確認
+
+    - cronのログは以下のディレクトリ／ファイルで確認できる
+
 #+begin_src bash
 $ tail /var/log/syslog
-$ sudo ls -ltr /var/spool/nullmailer/queue/
-$ sudo less -ltr /var/spool/nullmailer/queue/SOMRNUMBER
+$ sudo ls -ltrh /var/spool/nullmailer/queue/ | tail   ## ログファイル名、タイムスタンプ、サイズを確認する
+$ sudo less /var/spool/nullmailer/queue/LOGFILE       ## 上で調べたLOGFILE名の中には、cron実行時のログが吐き出されている
 #+end_src
