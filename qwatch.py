@@ -3,7 +3,7 @@
 
 import os
 import sys
-from time import localtime, strftime
+import time
 import argparse
 import ConfigParser
 
@@ -13,13 +13,24 @@ class QwatchCapture(object):
     Image capture for Qwatch webcamera.
     '''
     ##############################
-    def __init__(self, user, passwd, uri):
+    def __init__(self, name, user, passwd, uri, savedir):
         '''
         Set Qwatch parameters.
         '''
+        self.name = name
         self.user = user
         self.passwd = passwd
         self.uri = uri
+        self.savedir = savedir
+        datedir = time.strftime('%Y/%m/%d/', time.localtime())
+        jpg = time.strftime('%Y-%m%d-%H%M-%S.jpg', time.localtime())
+        self.jpgfile = os.path.join(self.savedir, datedir, jpg)
+
+        sys.stdout.write(20 * '-' + '\n')
+        sys.stdout.write('name : {0}\n'.format(self.name))
+        sys.stdout.write('uri  : {0}\n'.format(self.uri))
+        sys.stdout.write('save : {0}\n'.format(self.savedir))
+        sys.stdout.write('jpg  : {0}\n'.format(self.jpgfile))
 
     ##############################
     def set_tries(self, tries):
@@ -50,34 +61,38 @@ class QwatchCapture(object):
         $ mv snapshot.jpg snapshots/YYYY-MMDD-hhmm-ss.jpg
         '''
 
-        if not os.path.isdir('snapshots'):
-            sys.stderr.write('ERROR: no snapshots/ directory.\n')
-            sys.stderr.write('ERROR: create or make symlink for snapshots/ directory manually.\n')
-            sys.stderr.write('ERROR: (>w<)\n')
-            sys.stderr.write('HINT1: type "mkdir snapshots"\n')
-            sys.stderr.write('HINT2: type "ln -s PATH_TO_ANOTHER_SNAPSHOTS snapshots"\n')
-            sys.exit()
+        # sd = os.path.dirname(self.jpgfile)
+        # if not os.path.isdir(sd):
+        #     sys.stderr.write('WARNING : No "{0}" directory.\n'.format(sd))
+        #     sys.stderr.write('WARNING : Create the directory automatically.\n')
+        #     os.makedirs(sd)
+        #     if not os.path.isdir(sd):
+        #         sys.stderr.write('ERROR : No "{0}" directory.\n'.format(sd))
+        #         sys.stderr.write('ERROR : Could not create the directory automatically.\n')
+        #         sys.exit()
 
-        param = {'user':self.user,
-                 'passwd':self.passwd,
-                 'uri':self.uri,
-                 'tries':self.tries,
-                 'timeout':self.timeout,
-                 'logfile':self.logfile,
-                 'snapfile':'snapshot.jpg',
-                 'ofn': strftime("snapshots/%Y-%m%d-%H%M-%S.jpg", localtime())
-             }
+        conf = {'user':self.user,
+                'passwd':self.passwd,
+                'uri':self.uri,
+                'tries':self.tries,
+                'timeout':self.timeout,
+                'logfile':self.logfile,
+                'jpgfile': self.jpgfile}
 
+        ## wget-ing
         wget = 'wget --http-user={user} --http-password={passwd} -T {timeout} -t {tries} -a {logfile} {uri}'
-        mv = 'mv {snapfile} {ofn}'
-
-        message = 'Executing wget ... See {logfile} for detail.\n'.format(**param)
+        message = 'Executing wget ... See {logfile} for detail.\n'.format(**conf)
         sys.stderr.write(message)
-        os.system(wget.format(**param))
+        os.system(wget.format(**conf))
 
-        if os.path.exists('snapshot.jpg'):
-            os.system(mv.format(**param))
-
+        ## rename-ing
+        ss = 'snapshot.jpg'
+        # if not os.path.exists(ss):
+        #     sys.stderr.write('Error : No {0} found.\n'.format(ss))
+        #     sys.stderr.write('Error : Could not rename the file.\n')
+        #     sys.stderr.write('Error : (>W<)\n')
+        #     sys.exit()
+        os.renames(ss, '{jpgfile}'.format(**conf))
 
 ##################################################
 if __name__ == '__main__':
@@ -115,7 +130,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     ## Read config
-    config = ConfigParser.RawConfigParser()
+    config = ConfigParser.SafeConfigParser()
+
     if not os.path.exists(args.conffile[0]):
         sys.stderr.write('ERROR: no config file.\n')
         sys.stderr.write('ERROR: create new config using example.cfg.\n')
@@ -125,20 +141,28 @@ if __name__ == '__main__':
         sys.stderr.write('Reading {0}.\n'.format(args.conffile[0]))
         config.read(args.conffile[0])
 
+    ## Set QwatchCaptures
+    qws = []
+    sections = config.sections()
+    for section in sections:
+        name = config.get(section, 'name')
+        uri = config.get(section, 'uri')
+        user = config.get(section, 'user')
+        passwd = config.get(section, 'pass')
+        savedir = config.get(section, 'savedir')
+        ## Init Qwatch
+        qw = QwatchCapture(name=name,
+                           user=user,
+                           passwd=passwd,
+                           uri=uri,
+                           savedir=savedir
+        )
+        qw.set_tries(args.number)
+        qw.set_timeout(args.seconds)
+        qw.set_logfile(args.logfile)
+        ## Add to list
+        qws.append(qw)
 
-    uri = config.get('Capture', 'uri')
-    user = config.get('Capture', 'user')
-    passwd = config.get('Capture', 'pass')
-    sys.stderr.write('Destination {0}.\n'.format(uri))
-
-    ## Set QwatchCapture
-    qw = QwatchCapture(user=user,
-                       passwd=passwd,
-                       uri=uri)
-
-    qw.set_tries(args.number)
-    qw.set_timeout(args.seconds)
-    qw.set_logfile(args.logfile)
-
-    ## Run QwatchCapture
-    qw.run()
+    for qw in qws:
+        print qw.name
+        qw.run()
