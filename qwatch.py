@@ -7,13 +7,25 @@ import time
 import argparse
 import ConfigParser
 
+import logging
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    filename='example.log',
+                    filemode='w')
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+formatter = logging.Formatter('%(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s')
+console.setFormatter(formatter)
+logging.getLogger('').addHandler(console)
+
 ##################################################
 class QwatchCapture(object):
     '''
     Image capture for Qwatch webcamera.
     '''
     ##############################
-    def __init__(self, name, user, passwd, uri, base):
+    def __init__(self, name, user, passwd, uri, base, log):
         '''
         Configure Qwatch.
         '''
@@ -22,20 +34,22 @@ class QwatchCapture(object):
         self.passwd = passwd
         self.uri = uri
         self.base = base
+        self.log = log
         datedir = time.strftime('%Y/%m/%d/', time.localtime())
         jpg = time.strftime('%Y-%m%d-%H%M-%S.jpg', time.localtime())
         self.jpgfile = os.path.join(self.base, datedir, jpg)
+        self.logger = logging.getLogger('QwatchCapture')
 
     ##############################
     def __str__(self):
         '''
         Print initial configurations.
         '''
-        sys.stdout.write(20 * '-' + '\n')
-        sys.stdout.write('name : {0}\n'.format(self.name))
-        sys.stdout.write('uri  : {0}\n'.format(self.uri))
-        sys.stdout.write('base : {0}\n'.format(self.base))
-        sys.stdout.write('jpg  : {0}\n'.format(self.jpgfile))
+        self.logger.info(20 * '-')
+        self.logger.info('name : {0}'.format(self.name))
+        self.logger.info('uri  : {0}'.format(self.uri))
+        self.logger.info('base : {0}'.format(self.base))
+        self.logger.info('jpg  : {0}'.format(self.jpgfile))
         return '\n'
 
     ##############################
@@ -76,18 +90,22 @@ class QwatchCapture(object):
 
         ## wget-ing
         wget = 'wget --http-user={user} --http-password={passwd} -T {timeout} -t {tries} -a {logfile} {uri}'
-        message = 'Executing wget ... See {logfile} for detail.\n'.format(**conf)
-        sys.stderr.write(message)
+        message = 'Execute wget ... See {logfile} for detail.'.format(**conf)
+        self.logger.info(message)
         os.system(wget.format(**conf))
 
         ## rename-ing
         ss = 'snapshot.jpg'
         try:
+            message = 'Rename ... {0} -> {jpgfile}'.format(ss, **conf)
+            self.logger.info(message)
             os.renames(ss, '{jpgfile}'.format(**conf))
         except OSError as (errno, strerror):
-            print 'OS error({0}): {1}'.format(errno, strerror)
+            message = 'OSError({0}): {1}'.format(errno, strerror)
+            self.logger.error(message)
         else:
-            sys.stderr.write('Renamed ... Done.\n')
+            self.logger.info('... Finished')
+            os.rename('example.log', self.log)
 
 ##################################################
 if __name__ == '__main__':
@@ -140,13 +158,15 @@ if __name__ == '__main__':
         user = config.get(section, 'user')
         passwd = config.get(section, 'pass')
         base = config.get(section, 'base')
+        log = config.get(section, 'log')
 
         ## Init Qwatch
         qw = QwatchCapture(name=name,
                            user=user,
                            passwd=passwd,
                            uri=uri,
-                           base=base)
+                           base=base,
+                           log=log)
 
         ## Set Options
         qw.set_tries(args.number)
@@ -154,5 +174,5 @@ if __name__ == '__main__':
         qw.set_logfile(args.logfile)
 
         ## Run
-        print qw
+        print(qw)
         qw.run()
