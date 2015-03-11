@@ -13,43 +13,49 @@ class QwatchCapture(object):
     Image capture for Qwatch webcamera.
     '''
     ##############################
-    def __init__(self, name, user, passwd, uri, savedir):
+    def __init__(self, name, user, passwd, uri, base):
         '''
-        Set Qwatch parameters.
+        Configure Qwatch.
         '''
         self.name = name
         self.user = user
         self.passwd = passwd
         self.uri = uri
-        self.savedir = savedir
+        self.base = base
         datedir = time.strftime('%Y/%m/%d/', time.localtime())
         jpg = time.strftime('%Y-%m%d-%H%M-%S.jpg', time.localtime())
-        self.jpgfile = os.path.join(self.savedir, datedir, jpg)
+        self.jpgfile = os.path.join(self.base, datedir, jpg)
 
+    ##############################
+    def __str__(self):
+        '''
+        Print initial configurations.
+        '''
         sys.stdout.write(20 * '-' + '\n')
         sys.stdout.write('name : {0}\n'.format(self.name))
         sys.stdout.write('uri  : {0}\n'.format(self.uri))
-        sys.stdout.write('save : {0}\n'.format(self.savedir))
+        sys.stdout.write('base : {0}\n'.format(self.base))
         sys.stdout.write('jpg  : {0}\n'.format(self.jpgfile))
+        return '\n'
 
     ##############################
     def set_tries(self, tries):
         '''
-        Set number of times to retry.
+        Set option : number of times to retry.
         '''
         self.tries = tries
 
     ##############################
     def set_timeout(self, timeout):
         '''
-        Set timeout duration in SECONDS.
+        Set option : timeout duration in SECONDS.
         '''
         self.timeout = timeout
 
     ##############################
     def set_logfile(self, logfile):
         '''
-        Set log output file for wget.
+        Set option : output logfile for wget.
         '''
         self.logfile = logfile
 
@@ -76,13 +82,11 @@ class QwatchCapture(object):
 
         ## rename-ing
         ss = 'snapshot.jpg'
-        # if not os.path.exists(ss):
-        #     sys.stderr.write('Error : No {0} found.\n'.format(ss))
-        #     sys.stderr.write('Error : Could not rename the file.\n')
-        #     sys.stderr.write('Error : (>W<)\n')
-        #     sys.exit()
-        os.renames(ss, '{jpgfile}'.format(**conf))
-        ## Raises OSError when no OLD file.
+        try:
+            os.renames(ss, '{jpgfile}'.format(**conf))
+        except OSError as (errno, strerror):
+            print 'OS error({0}): {1}'.format(errno, strerror)
+
 
 ##################################################
 if __name__ == '__main__':
@@ -112,24 +116,25 @@ if __name__ == '__main__':
                         dest='logfile',
                         help='append messages to LOGFILE')
     ## Set option defaults
-    parser.set_defaults(conffile='example.cfg',
+    parser.set_defaults(conffile='conf.example',
                         number=1,
                         seconds=10,
-                        logfile='qwatch.log')
+                        logfile='qw-wget.log')
     ## Get args and options
     args = parser.parse_args()
 
     ## Read config
     config = ConfigParser.SafeConfigParser()
 
-    if not os.path.exists(args.conffile[0]):
-        sys.stderr.write('ERROR: no config file.\n')
-        sys.stderr.write('ERROR: create new config using example.cfg.\n')
+    conffile = args.conffile[0]
+    if not os.path.exists(conffile):
+        sys.stderr.write('ERROR: No "{0}" found.\n'.format(conffile))
+        sys.stderr.write('ERROR: Create new conf file using qwconf.example.\n')
         sys.stderr.write('ERROR: (>w<)\n')
         sys.exit()
-    else:
-        sys.stderr.write('Reading {0}.\n'.format(args.conffile[0]))
-        config.read(args.conffile[0])
+
+    sys.stderr.write('Reading {0}.\n'.format(conffile))
+    config.read(conffile)
 
     ## Set QwatchCaptures
     qws = []
@@ -139,14 +144,14 @@ if __name__ == '__main__':
         uri = config.get(section, 'uri')
         user = config.get(section, 'user')
         passwd = config.get(section, 'pass')
-        savedir = config.get(section, 'savedir')
+        base = config.get(section, 'base')
         ## Init Qwatch
         qw = QwatchCapture(name=name,
                            user=user,
                            passwd=passwd,
                            uri=uri,
-                           savedir=savedir
-        )
+                           base=base)
+        ## Set Options
         qw.set_tries(args.number)
         qw.set_timeout(args.seconds)
         qw.set_logfile(args.logfile)
@@ -154,5 +159,5 @@ if __name__ == '__main__':
         qws.append(qw)
 
     for qw in qws:
-        print qw.name
+        print qw
         qw.run()
