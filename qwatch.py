@@ -50,7 +50,7 @@ class QwatchCapture(object):
         self.logger.info('uri  : {0}'.format(self.uri))
         self.logger.info('base : {0}'.format(self.base))
         self.logger.info('jpg  : {0}'.format(self.jpgfile))
-        return '\n'
+        return ''
 
     ##############################
     def set_tries(self, tries):
@@ -73,12 +73,17 @@ class QwatchCapture(object):
         '''
         self.logfile = logfile
 
+
     ##############################
     def run(self):
         '''
-        Original shell command is:
+        To capture:
         $ wget --http-user=USER --http-password=PASS URI
-        $ mv snapshot.jpg snapshots/YYYY-MMDD-hhmm-ss.jpg
+        $ mv snapshot.jpg $BASE/YYYY/mm/dd/YYYY-mmdd-HHMM-SS.jpg
+
+        To ffmpeg:
+        $ ffmpeg -y -f image2 -r 15 -pattern_type glob -i '$BASE/YYYY/mm/dd/*.jpg' -r 15 -an -vcodec libx264 -pix_fmt yuv420p video.mp4
+        $ mv video.mp4 $BASE/YYYY-mm-dd.mp4
         '''
         conf = {'user':self.user,
                 'passwd':self.passwd,
@@ -88,7 +93,6 @@ class QwatchCapture(object):
                 'logfile':self.logfile,
                 'jpgfile': self.jpgfile}
 
-        ## wget-ing
         wget = 'wget --http-user={user} --http-password={passwd} -T {timeout} -t {tries} -a {logfile} {uri}'
         message = 'Execute wget ... See {logfile} for detail.'.format(**conf)
         self.logger.info(message)
@@ -104,8 +108,22 @@ class QwatchCapture(object):
             message = 'OSError({0}): {1}'.format(errno, strerror)
             self.logger.error(message)
         else:
-            self.logger.info('... Finished')
-            os.rename('example.log', self.log)
+            self.logger.info('Finished')
+            os.renames('example.log', self.log)
+
+        # ## ffmpeg-ing
+        # ## pbweb
+        # datedir = time.strftime('%Y/%m/%d/', time.localtime())
+        # pattern = os.path.join(self.base, datedir, '*.jpg')
+        # video = 'video.mp4'
+
+        # ffmpeg_in = "-y -f image2 -r 15 -pattern_type glob -i '{0}'".format(pattern)
+        # ffmpeg_out = "-r 15 -an -vcodec libx264 -pix_fmt yuv420p {0}".format(video)
+        # ffmpeg = 'ffmpeg {0} {1}'.format(ffmpeg_in, ffmpeg_out)
+        # self.logger.info(ffmpeg)
+        # os.system(ffmpeg)
+        # mp4file = os.path.join(self.base, '{0}.mp4'.format(time.strftime('%Y-%m-%d')))
+        # os.rename(video, mp4file)
 
 ##################################################
 if __name__ == '__main__':
