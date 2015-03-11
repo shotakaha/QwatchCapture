@@ -12,4 +12,4 @@ FFMPEG_OUT_FILE=video.mp4
 
 ## Run
 */10 * * * * `cd $QWDIR && ./qwatch.py QWCONFIG`
-* */1 * * * `cd $QWDIR && ffmpeg ${FFMPEG_OPT_IN} -pattern_type glob -i 'snapshots/*.jpg' ${FFMPEG_OPT_OUT} ${FFMPEG_OUTFILE} && mv ${FFMPEG_OUTFILE} snapshots/`
+5 * * * * `cd $QWDIR && ffmpeg ${FFMPEG_OPT_IN} -pattern_type glob -i 'snapshots/*.jpg' ${FFMPEG_OPT_OUT} ${FFMPEG_OUTFILE} && mv ${FFMPEG_OUTFILE} snapshots/`
