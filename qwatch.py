@@ -60,17 +60,6 @@ class QwatchCapture(object):
         $ wget --http-user=USER --http-password=PASS URI
         $ mv snapshot.jpg snapshots/YYYY-MMDD-hhmm-ss.jpg
         '''
-
-        # sd = os.path.dirname(self.jpgfile)
-        # if not os.path.isdir(sd):
-        #     sys.stderr.write('WARNING : No "{0}" directory.\n'.format(sd))
-        #     sys.stderr.write('WARNING : Create the directory automatically.\n')
-        #     os.makedirs(sd)
-        #     if not os.path.isdir(sd):
-        #         sys.stderr.write('ERROR : No "{0}" directory.\n'.format(sd))
-        #         sys.stderr.write('ERROR : Could not create the directory automatically.\n')
-        #         sys.exit()
-
         conf = {'user':self.user,
                 'passwd':self.passwd,
                 'uri':self.uri,
@@ -93,6 +82,7 @@ class QwatchCapture(object):
         #     sys.stderr.write('Error : (>W<)\n')
         #     sys.exit()
         os.renames(ss, '{jpgfile}'.format(**conf))
+        ## Raises OSError when no OLD file.
 
 ##################################################
 if __name__ == '__main__':
