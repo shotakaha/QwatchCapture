@@ -57,32 +57,80 @@ $ mv video.mp4 snapshots/
 
 ** 設定ファイルを用意する
 
-   - example.cfgをコピーしてCONFIG.cfgを新規作成する
-   - 「CONFIG」の部分は任意
-   - CONFIG.cfgの中身を自分のQwatchの設定に書き換える
+   - qwconf.exampleをコピーしてmyconf.confを新規に作成する
+   - myconf.confの中身を自分のQwatchの設定に書き換える
 
 *** 設定ファイルの書式
 
 #+begin_src config
-[Capture]
-uri = http://QWATCHADDRESS/snapshot.jpg
+[WEBCAM]
+name = CAMNAME
+uri = http://QW-ADDRESS/snapshot.jpg
 user = USER
 pass = PASS
+base = WEBHOME/%(name)s
 #+end_src
+
+    - 大文字の部分を書き換えればよい
+    - baseは保存先ディレクトリのつもり
+      - 中で日付ごとに保存される
+      - 「$WEBHOME/$CAMNAME/2015/03/11/2015-0311-2230-15.jpg」みたいな感じ
+
+*** 複数台カメラを設定する場合
+
+    - １台ごとにconfファイルを用意して、引数にしてもOK
+    - １つのconfファイルに複数台の設定を書いてもOK
+
+#+begin_src config
+[WEBCAM1]
+name = CAMNAME1
+uri = http://QW-ADDRESS-1/snapshot.jpg
+user = USER
+pass = PASS
+base = WEBHOME/%(name)s
+
+[WEBCAM2]
+name = CAMNAME2
+uri = http://QW-ADDRESS-2/snapshot.jpg
+user = USER
+pass = PASS
+base = WEBHOME/%(name)s
+#+end_src
+
+    - セクション（WEBCAM1、WEBCAM2の部分）は違うものにする
+      - 同じにすると、あとの設定に上書きされるので注意
+    - 同じ場所に画像を保存したい場合は「name」を一緒にする
+      - あとで動画を作ることを考えると非推奨
 
 ** 実行する
 
-   - configファイルを引数にして実行する
+   - confファイルを引数にして実行する
 
   #+begin_src bash
-  $ ./qwatch.py CONFIF.cfg
+  $ ./qwatch.py QWCONF.conf
   #+end_src
+
+   - 複数のconfファイルを指定することもできる
+
+#+begin_src bash
+$ ./qwatch.py QWCONF.conf QWCONF2.conf
+#+end_src
+
+*** ヘルプを見る
+
+    - オプションについてはヘルプを確認して下さい
+
+#+begin_src bash
+$ ./qwatch.py -h
+#+end_src
+
 
 ** 画像の保存先
 
-   - ファイル名は「snapshots/YYYY-MMDD-hhmm-ss.jpg」
-   - カレントディレクトリに「snapshots/」を作成する
-   - 公開しているウェブページへのシンボリックリンクでも良い
+   - confファイルの「base」を元にディレクトリを作成する
+     - ファイル名は「base/name/YYYY/MM/DD/YYYY-MMDD-hhmm-ss.jpg」
+   - ウェブページでチェックしたい場合は、baseの部分をそこまでのシンボリックにするといい
+     - なんかうまく説明できていないけれど、各自で考えてください
 
 ** cronに登録する
 
@@ -106,15 +154,17 @@ $ crontab -l > cron.bk      ## Easy back up
 *** 10分ごとに画像をキャプチャする場合
 
 #+begin_src text
-QWDIR=     ## 各自で設定
-QWCONFIG=  ## 各自で設定
+QWDIR=      ## qwatch.py があるディレクトリを指定する
+QWCONFIGS=  ## confファイルを指定（複数指定できる、半角スペースで区切る（みかくにん））
 */10 * * * * `cd $QWDIR && ./qwatch.py $QWCONFIG`
 #+end_src
 
-*** 1時間ごとにタイムラプス動画を作る場合
+*** 1時間ごとにタイムラプス動画を作る場合（みかくにん）
+
+    - 画像の保存先を日付ごとにしたので、これではできない
 
 #+begin_src text
-QWDIR=     ## 各自で設定
+QWDIR=     ## qwatch.py があるディレクトリを指定する
 
 FFMPEG_OPT_IN="-y -f image2 -r 15"                          ## 入力ファイルオプション
 FFMPEG_OPT_OUT="-r 15 -an -vcodec libx264 -pix_fmt yuv420p" ## 出力ファイルオプション
