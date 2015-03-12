@@ -181,7 +181,7 @@ class QwatchCapture(object):
         ffmpeg = "ffmpeg -y -f image2 -r {ifr} -pattern_type glob -i '{pattern}' -r {ofr} -an -vcodec {vcodec} -pix_fmt {pixfmt} {ofn}"
         message = 'Execute ffmpeg ... {pattern}'.format(**conf)
         self.logger.info(message)
-        # os.system(ffmpeg.format(**conf))
+        os.system(ffmpeg.format(**conf))
 
         # self.logger.info(ffmpeg)
         mp4file = time.strftime(self.mp4file, self.date.timetuple())
