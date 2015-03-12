@@ -44,6 +44,7 @@ class QwatchCapture(object):
         self.logger.info('name : {0}'.format(self.name))
         self.logger.info('uri  : {0}'.format(self.uri))
         self.logger.info('base : {0}'.format(self.base))
+        self.logger.info('log  : {0}'.format(self.log))
         return ''
 
     ##############################
@@ -147,7 +148,6 @@ class QwatchCapture(object):
             self.logger.error(message)
         else:
             self.logger.info('Finished CAPTURE')
-            os.renames('example.log', self.log)
 
     ##############################
     def timelapse(self):
@@ -181,7 +181,6 @@ class QwatchCapture(object):
             self.logger.error(message)
         else:
             self.logger.info('Finished FFMPEG')
-            os.renames('example.log', self.log)
 
 ##################################################
 if __name__ == '__main__':
@@ -214,7 +213,7 @@ if __name__ == '__main__':
     parser.set_defaults(conffile='conf.example',
                         number=1,
                         seconds=10,
-                        logfile='qw-wget.log')
+                        logfile='qwwget.log')
     ## Get args and options
     args = parser.parse_args()
 

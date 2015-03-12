@@ -50,7 +50,6 @@ if __name__ == '__main__':
                         ofn='video.mp4')
     ## Get args and options
     args = parser.parse_args()
-    print args
 
     ## Print config files
     for f in args.conffile:
