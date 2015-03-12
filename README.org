@@ -68,7 +68,7 @@ name = CAMNAME
 uri = http://QWatchADDRESS/snapshot.jpg
 user = USER
 pass = PASS
-base = snapshots/%(name)s
+base = EXPERIMENTS/%(name)s
 #+end_src
 
     - WEBCAM :: ConfigParserで「セクション」と呼ぶ。カメラごとに異なった名前にする。
@@ -76,16 +76,18 @@ base = snapshots/%(name)s
     - uri :: JPEGファイルの場所。TS-WLCAMシリーズの場合は「QwatchADDRESS」の部分を該当のIPアドレスに書き換えればOK
     - user :: ユーザー名
     - pass :: パスワード
-    - base :: 画像を保存するディレクトリ。%(name)sの部分は、上にある「name」で置換される。
+    - base :: 画像／動画を保存するディレクトリ。%(name)sの部分は、上にある「name」で置換される。EXPERIMENTSには各実験グループ名（とか用途）をいれるつもり。
 
-*** 画像の保存先
+*** 画像／動画の保存先
 
-    - 例 :: snapshots/CAMNAME/2015/03/11/2015-0311-2230-15.jpg
-    - スクリプト内部で日付ごとにリネームしている
-    - ブラウザで確認したい場合は、snapshots を公開ディレクトリへのシンボリックにするとよい
+    - スクリプト内部で日付ごとに管理している
+    - ファイルパスの例
+      - 画像 :: EXPERIMENTS/CAMNAME/snapshots/2015/03/11/2015-0311-2230-15.jpg
+      - 動画 :: EXPERIMENTS/CAMNAME/timelapse/2015-03-11.jpg
 
+    - ブラウザで確認したい場合は、experiments を公開ディレクトリへのシンボリックにするとよい
 #+begin_src bash
-$ ln -s ~/public_html/qwatch/snap snapthots
+$ ln -s ~/public_html/qwatch/snap experiments
 #+end_src
 
 *** 複数台カメラを設定する場合（みかくにん）
@@ -110,7 +112,7 @@ base = WEBHOME/%(name)s
 #+end_src
 
 
-** キャプチャを実行する
+** 画像をキャプチャする : qwcapture
 
    - confファイルを引数にして実行する
 
@@ -133,9 +135,16 @@ $ ./qwcapture.py QWCONF.conf QWCONF2.conf
 $ ./qwatch.py -h
 #+end_src
 
-** タイムラプス動画の作成
+** タイムラプス動画の作成 : qwtimelapse
 
-   - これから作る予定
+   - 日付とconfファイルを引数にして実行する
+   - 日付には、「today」「yesterday」「YYYY/mm/dd の書式」が使える
+   - 日付は *１個* しか指定できない（confファイルは複数指定できる）
+     - 基本的に毎日更新するため、複数日をまとめてやる必要が（とりあえず）ないと思うから
+
+  #+begin_src bash
+  $ ./qwtimelapse.py DATE QWCONF.conf
+  #+end_src
 
 ** cronに登録する
 
@@ -161,28 +170,25 @@ $ crontab -l > mycront.bk    ## Backup crontab
 
 *** 10分ごとに画像をキャプチャする場合
 
+    - QwatchCaptureのあるディレクトリまでのパスを指定する
+    - confファイルも指定する
+
 #+begin_src text
 QWDIR=      ## qwatch.py があるディレクトリを指定する
 QWCONFIGS=  ## confファイルを指定（複数指定できる、半角スペースで区切る（みかくにん））
-*/10 * * * * `cd $QWDIR && ./qwatch.py $QWCONFIG`
+
+*/10 * * * * `cd $QWDIR && ./qwcapture.py $QWCONFIG`
 #+end_src
 
 *** 1時間ごとにタイムラプス動画を作る場合（みかくにん）
 
-    - 画像の保存先を日付ごとにしたので、これではできない
+    - 毎時5分に作成（キャプチャの実行と時間をずらしてある）
+    - 毎日00時08分に、前日の動画をまとめる（これも時間をずらしてある）
 
 #+begin_src text
-QWDIR=     ## qwatch.py があるディレクトリを指定する
-
-FFMPEG_OPT_IN="-y -f image2 -r 15"                          ## 入力ファイルオプション
-FFMPEG_OPT_OUT="-r 15 -an -vcodec libx264 -pix_fmt yuv420p" ## 出力ファイルオプション
-FFMPEG_OUT_FILE=video.mp4    ## 出力ファイル名
-
-5 * * * * `cd $QWDIR && ffmpeg ${FFMPEG_OPT_IN} -pattern_type glob -i 'snapshots/*.jpg' ${FFMPEG_OPT_OUT} ${FFMPEG_OUTFILE} && mv ${FFMPEG_OUTFILE} snapshots/`
+5 * * * * `cd $QWDIR && ./qwtimelapse.py today QWCONFIGS`
+8 0 * * * `cd $QWDIR && ./qwtimelapse.py yesterday QWCONFIGS`
 #+end_src
-
-    - 「-pettern_type glob -i 'snapshots/*.jpg'」の部分でどうしてもエラーが出てしまうので、入力オプションから外し、ベタ書きしている
-    - キャプチャの実行と時間をずらしてある（毎時５分）
 
 *** ログの確認
 
