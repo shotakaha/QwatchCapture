@@ -1,0 +1,10 @@
+# MAILTO=yourname@yourdomain
+# SHELL=/bin/bash
+
+## Settings for QwatchCapture
+QWDIR=
+QWCONFIG=
+
+## Run
+*/10 * * * * `cd $QWDIR && ./qwcapture.py $QWCONFIG`
+5 * * * * `cd $QWDIR && ./qwtimelapse.py today $QWCONFIG`

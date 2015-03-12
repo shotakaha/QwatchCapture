@@ -1,11 +1,23 @@
-#! /usr/bin/env python
 # coding: utf-8
 
 import os
 import sys
-from time import localtime, strftime
+import time
+import datetime
 import argparse
 import ConfigParser
+
+import logging
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    filename='example.log',
+                    filemode='w')
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+formatter = logging.Formatter('%(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s')
+console.setFormatter(formatter)
+logging.getLogger('').addHandler(console)
 
 ##################################################
 class QwatchCapture(object):
@@ -13,71 +25,157 @@ class QwatchCapture(object):
     Image capture for Qwatch webcamera.
     '''
     ##############################
-    def __init__(self, user, passwd, uri):
+    def __init__(self, name, user, passwd, uri, base, log):
         '''
-        Set Qwatch parameters.
+        Configure Qwatch.
         '''
+        self.name = name
         self.user = user
         self.passwd = passwd
         self.uri = uri
+        self.base = base
+        self.log = log
+        datedir = time.strftime('%Y/%m/%d/', time.localtime())
+        jpg = time.strftime('%Y-%m%d-%H%M-%S.jpg', time.localtime())
+        self.jpgfile = os.path.join(self.base, datedir, jpg)
+        self.logger = logging.getLogger('QwatchCapture')
+
+    ##############################
+    def __str__(self):
+        '''
+        Print initial configurations.
+        '''
+        self.logger.info(20 * '-')
+        self.logger.info('name : {0}'.format(self.name))
+        self.logger.info('uri  : {0}'.format(self.uri))
+        self.logger.info('base : {0}'.format(self.base))
+        self.logger.info('jpg  : {0}'.format(self.jpgfile))
+        return ''
 
     ##############################
     def set_tries(self, tries):
         '''
-        Set number of times to retry.
+        Set option : number of times to retry.
         '''
         self.tries = tries
 
     ##############################
     def set_timeout(self, timeout):
         '''
-        Set timeout duration in SECONDS.
+        Set option : timeout duration in SECONDS.
         '''
         self.timeout = timeout
 
     ##############################
     def set_logfile(self, logfile):
         '''
-        Set log output file for wget.
+        Set option : output logfile for wget.
         '''
         self.logfile = logfile
 
-    ##############################
-    def run(self):
+    ##################################################
+    def set_ffmpeg(self, ifr, ofr, vcodec, pixfmt, ofn):
         '''
-        Original shell command is:
-        $ wget --http-user=USER --http-password=PASS URI
-        $ mv snapshot.jpg snapshots/YYYY-MMDD-hhmm-ss.jpg
+        Set option for ffmpeg
         '''
+        self.ifr = ifr
+        self.ofr = ofr
+        self.vcodec = vcodec
+        self.pixfmt = pixfmt
+        self.ofn = ofn
 
-        if not os.path.isdir('snapshots'):
-            sys.stderr.write('ERROR: no snapshots/ directory.\n')
-            sys.stderr.write('ERROR: create or make symlink for snapshots/ directory manually.\n')
-            sys.stderr.write('ERROR: (>w<)\n')
-            sys.stderr.write('HINT1: type "mkdir snapshots"\n')
-            sys.stderr.write('HINT2: type "ln -s PATH_TO_ANOTHER_SNAPSHOTS snapshots"\n')
+    ##################################################
+    def set_date(self, date):
+        '''
+        Read date and return directory
+        '''
+        t = date
+        if date == 'today':
+            t = datetime.date.today()
+        elif date == 'yesterday':
+            t = datetime.date.today() - datetime.timedelta(1)
+        else:
+            t = datetime.datetime.strptime(date, '%Y/%m/%d')
+
+
+        tf = time.strftime('%Y/%m/%d', t.timetuple())
+        d = os.path.join(self.base, tf)
+        if not os.path.exists(d):
+            self.logger.error('No such directory : "{0}"".'.format(d))
+            self.logger.error('(>W<)')
             sys.exit()
+        else:
+            self.date = t
+            self.pattern = d
 
-        param = {'user':self.user,
-                 'passwd':self.passwd,
-                 'uri':self.uri,
-                 'tries':self.tries,
-                 'timeout':self.timeout,
-                 'logfile':self.logfile,
-                 'snapfile':'snapshot.jpg',
-                 'ofn': strftime("snapshots/%Y-%m%d-%H%M-%S.jpg", localtime())
-             }
+    ##############################
+    def capture(self):
+        '''
+        To capture:
+        $ wget --http-user=USER --http-password=PASS URI
+        $ mv snapshot.jpg $BASE/YYYY/mm/dd/YYYY-mmdd-HHMM-SS.jpg
+
+        '''
+        conf = {'user':self.user,
+                'passwd':self.passwd,
+                'uri':self.uri,
+                'tries':self.tries,
+                'timeout':self.timeout,
+                'logfile':self.logfile,
+                'jpgfile': self.jpgfile}
 
         wget = 'wget --http-user={user} --http-password={passwd} -T {timeout} -t {tries} -a {logfile} {uri}'
-        mv = 'mv {snapfile} {ofn}'
+        message = 'Execute wget ... See {logfile} for detail.'.format(**conf)
+        self.logger.info(message)
+        os.system(wget.format(**conf))
 
-        message = 'Executing wget ... See {logfile} for detail.\n'.format(**param)
-        sys.stderr.write(message)
-        os.system(wget.format(**param))
+        ## rename-ing
+        ss = 'snapshot.jpg'
+        try:
+            message = 'Rename ... {0} -> {jpgfile}'.format(ss, **conf)
+            self.logger.info(message)
+            os.renames(ss, '{jpgfile}'.format(**conf))
+        except OSError as (errno, strerror):
+            message = 'OSError({0}): {1}'.format(errno, strerror)
+            self.logger.error(message)
+        else:
+            self.logger.info('Finished CAPTURE')
+            os.renames('example.log', self.log)
 
-        if os.path.exists('snapshot.jpg'):
-            os.system(mv.format(**param))
+    ##############################
+    def timelapse(self):
+        '''
+        To ffmpeg:
+        $ ffmpeg -y -f image2 -r 15 -pattern_type glob -i '$BASE/YYYY/mm/dd/*.jpg' -r 15 -an -vcodec libx264 -pix_fmt yuv420p video.mp4
+        $ mv video.mp4 $BASE/YYYY-mm-dd.mp4
+        '''
+        conf = {'ifr':self.ifr,
+                'pattern':os.path.join(self.pattern, '*.jpg'),
+                'ofr':self.ofr,
+                'vcodec':self.vcodec,
+                'pixfmt':self.pixfmt,
+                'ofn':self.ofn,
+                'date':self.date}
 
+        ## ffmpeg-ing
+        ffmpeg = "ffmpeg -y -f image2 -r {ifr} -pattern_type glob -i '{pattern}' -r {ofr} -an -vcodec {vcodec} -pix_fmt {pixfmt} {ofn}"
+        message = 'Execute ffmpeg ... '.format(**conf)
+        self.logger.info(message)
+        os.system(ffmpeg.format(**conf))
+
+        # self.logger.info(ffmpeg)
+        # os.system(ffmpeg)
+        mp4file = os.path.join(self.base, '{date}.mp4'.format(**conf))
+        try:
+            message = 'Rename ... {ofn} -> {0}'.format(mp4file, **conf)
+            self.logger.info(message)
+            os.renames('{ofn}'.format(**conf), mp4file)
+        except OSError as (errno, strerror):
+            message = 'OSError({0}): {1}'.format(errno, strerror)
+            self.logger.error(message)
+        else:
+            self.logger.info('Finished FFMPEG')
+            os.renames('example.log', self.log)
 
 ##################################################
 if __name__ == '__main__':
@@ -93,7 +191,7 @@ if __name__ == '__main__':
                                      epilog=epi,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(dest='conffile',
-                        nargs=1,
+                        nargs='+',
                         help='specify CONFIGFILE')
     parser.add_argument('-t', '--tries',
                         dest='number',
@@ -107,38 +205,44 @@ if __name__ == '__main__':
                         dest='logfile',
                         help='append messages to LOGFILE')
     ## Set option defaults
-    parser.set_defaults(conffile='example.cfg',
+    parser.set_defaults(conffile='conf.example',
                         number=1,
                         seconds=10,
-                        logfile='qwatch.log')
+                        logfile='qw-wget.log')
     ## Get args and options
     args = parser.parse_args()
 
-    ## Read config
-    config = ConfigParser.RawConfigParser()
-    if not os.path.exists(args.conffile[0]):
-        sys.stderr.write('ERROR: no config file.\n')
-        sys.stderr.write('ERROR: create new config using example.cfg.\n')
-        sys.stderr.write('ERROR: (>w<)\n')
-        sys.exit()
-    else:
-        sys.stderr.write('Reading {0}.\n'.format(args.conffile[0]))
-        config.read(args.conffile[0])
+    ## Print config files
+    for f in args.conffile:
+        print f, os.path.exists(f)
 
+    ## Read config files
+    config = ConfigParser.SafeConfigParser()
+    config.read(args.conffile)
 
-    uri = config.get('Capture', 'uri')
-    user = config.get('Capture', 'user')
-    passwd = config.get('Capture', 'pass')
-    sys.stderr.write('Destination {0}.\n'.format(uri))
+    ## Set QwatchCaptures
+    sections = config.sections()
+    for section in sections:
+        name = section
+        uri = config.get(section, 'uri')
+        user = config.get(section, 'user')
+        passwd = config.get(section, 'pass')
+        base = config.get(section, 'base')
+        log = config.get(section, 'log')
 
-    ## Set QwatchCapture
-    qw = QwatchCapture(user=user,
-                       passwd=passwd,
-                       uri=uri)
+        ## Init Qwatch
+        qw = QwatchCapture(name=name,
+                           user=user,
+                           passwd=passwd,
+                           uri=uri,
+                           base=base,
+                           log=log)
 
-    qw.set_tries(args.number)
-    qw.set_timeout(args.seconds)
-    qw.set_logfile(args.logfile)
+        ## Set Options
+        qw.set_tries(args.number)
+        qw.set_timeout(args.seconds)
+        qw.set_logfile(args.logfile)
 
-    ## Run QwatchCapture
-    qw.run()
+        ## Run
+        print(qw)
+        qw.capture()

@@ -1,0 +1,18 @@
+## Change variables (start with $)
+
+[$WEBCAM]
+name = $CAMNAME
+uri = http://$QW-ADDRESS/snapshot.jpg
+user = $USER
+pass = $PASS
+base = $WEBHOME/%(name)s
+log = %(base)s/qwlatest.log     
+
+## You can easily add another WEBCAM
+# [$WEBCAM2]
+# name = $CAMNAME2
+# uri = http://$QW-ADDRESS-2/snapshot.jpg
+# user = $USER2
+# pass = $PASS2
+# base = $WEBHOME/%(name)s
+# log = %(base)s/qwlatest.log     
