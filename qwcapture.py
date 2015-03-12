@@ -37,7 +37,7 @@ if __name__ == '__main__':
     parser.set_defaults(conffile='conf.example',
                         number=1,
                         seconds=10,
-                        logfile='qw-wget.log')
+                        logfile='qwwget.log')
     ## Get args and options
     args = parser.parse_args()
 

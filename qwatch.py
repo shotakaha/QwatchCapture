@@ -24,15 +24,11 @@ class QwatchCapture(object):
         self.uri = uri
         self.base = base
         self.log = log
-        # datedir = time.strftime('%Y/%m/%d/', time.localtime())
-        # jpg = time.strftime('%Y-%m%d-%H%M-%S.jpg', time.localtime())
-        # mp4 = time.strftime('%Y-%m-%d.mp4', time.localtime())
-        jpg = 'snapshots/%Y/%m/%d/%Y-%m%d-%H%M-%S.jpg'
-        mp4 = 'timelapse/%Y-%m-%d.mp4'
-        # self.jpgfile = os.path.join(self.base, datedir, 'snapshots', jpg)
-        # self.mp4file = os.path.join(self.base, datedir, 'timelapse', mp4)
-        self.jpgfile = os.path.join(self.base, jpg)
-        self.mp4file = os.path.join(self.base, mp4)
+
+        jpgfmt = 'snapshots/%Y/%m/%d/%Y-%m%d-%H%M-%S.jpg'
+        mp4fmt = 'timelapse/%Y-%m-%d.mp4'
+        self.jpgfile = os.path.join(self.base, jpgfmt)
+        self.mp4file = os.path.join(self.base, mp4fmt)
         self.set_logger()
 
     ##############################
@@ -98,23 +94,26 @@ class QwatchCapture(object):
         '''
         Read date and return directory
         '''
-        t = date
+        dt = date
         if date == 'today':
-            t = datetime.date.today()
+            dt = datetime.date.today()
         elif date == 'yesterday':
-            t = datetime.date.today() - datetime.timedelta(1)
+            dt = datetime.date.today() - datetime.timedelta(1)
         else:
-            t = datetime.datetime.strptime(date, '%Y/%m/%d')
+            dt = datetime.datetime.strptime(date, '%Y/%m/%d')
 
-        tf = time.strftime('snapshots/%Y/%m/%d', t.timetuple())
-        d = os.path.join(self.base, tf)
+        self.logger.debug(self.jpgfile)
+        self.logger.debug(os.path.dirname(self.jpgfile))
+        d = time.strftime(os.path.dirname(self.jpgfile), dt.timetuple())
+        self.logger.debug(d)
+
         if not os.path.exists(d):
-            self.logger.error('No such directory : "{0}"".'.format(d))
+            self.logger.error('No such directory : "{0}".'.format(d))
             self.logger.error('(>W<)')
             sys.exit()
         else:
-            self.date = t
-            self.pattern = d
+            self.date = dt
+            self.pattern = os.path.join(d, '*.jpg')
 
     ##############################
     def capture(self):
@@ -124,6 +123,7 @@ class QwatchCapture(object):
         $ mv snapshot.jpg $BASE/YYYY/mm/dd/YYYY-mmdd-HHMM-SS.jpg
 
         '''
+        ## config for wget
         conf = {'user':self.user,
                 'passwd':self.passwd,
                 'uri':self.uri,
@@ -132,6 +132,12 @@ class QwatchCapture(object):
                 'logfile':self.logfile,
                 'jpgfile': time.strftime(self.jpgfile)}
 
+        self.logger.debug('uri     : {uri}'.format(**conf))
+        self.logger.debug('retries : {tries}'.format(**conf))
+        self.logger.debug('timeout : {timeout}'.format(**conf))
+        self.logger.debug('logfile : {logfile}'.format(**conf))
+
+        ## wget-ing
         wget = 'wget --http-user={user} --http-password={passwd} -T {timeout} -t {tries} -a {logfile} {uri}'
         message = 'Execute wget ... See {logfile} for detail.'.format(**conf)
         self.logger.info(message)
@@ -156,19 +162,26 @@ class QwatchCapture(object):
         $ ffmpeg -y -f image2 -r 15 -pattern_type glob -i '$BASE/YYYY/mm/dd/*.jpg' -r 15 -an -vcodec libx264 -pix_fmt yuv420p video.mp4
         $ mv video.mp4 $BASE/YYYY-mm-dd.mp4
         '''
+        ## config for ffmpeg
         conf = {'ifr':self.ifr,
-                'pattern':os.path.join(self.pattern, '*.jpg'),
+                'pattern':self.pattern,
                 'ofr':self.ofr,
                 'vcodec':self.vcodec,
                 'pixfmt':self.pixfmt,
                 'ofn':self.ofn,
                 'date':self.date}
 
+        self.logger.debug('input frame rate  : {ifr}'.format(**conf))
+        self.logger.debug('output frame rate : {ofr}'.format(**conf))
+        self.logger.debug('vcodec            : {vcodec}'.format(**conf))
+        self.logger.debug('pixel format      : {pixfmt}'.format(**conf))
+        self.logger.debug('output filename   : {ofn}'.format(**conf))
+
         ## ffmpeg-ing
         ffmpeg = "ffmpeg -y -f image2 -r {ifr} -pattern_type glob -i '{pattern}' -r {ofr} -an -vcodec {vcodec} -pix_fmt {pixfmt} {ofn}"
-        message = 'Execute ffmpeg ... '.format(**conf)
+        message = 'Execute ffmpeg ... {pattern}'.format(**conf)
         self.logger.info(message)
-        os.system(ffmpeg.format(**conf))
+        # os.system(ffmpeg.format(**conf))
 
         # self.logger.info(ffmpeg)
         mp4file = time.strftime(self.mp4file, self.date.timetuple())
