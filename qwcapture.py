@@ -74,4 +74,4 @@ if __name__ == '__main__':
 
         ## Run
         print(qw)
-        qw.run()
+        qw.capture()

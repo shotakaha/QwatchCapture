@@ -75,15 +75,12 @@ class QwatchCapture(object):
 
 
     ##############################
-    def run(self):
+    def capture(self):
         '''
         To capture:
         $ wget --http-user=USER --http-password=PASS URI
         $ mv snapshot.jpg $BASE/YYYY/mm/dd/YYYY-mmdd-HHMM-SS.jpg
 
-        To ffmpeg:
-        $ ffmpeg -y -f image2 -r 15 -pattern_type glob -i '$BASE/YYYY/mm/dd/*.jpg' -r 15 -an -vcodec libx264 -pix_fmt yuv420p video.mp4
-        $ mv video.mp4 $BASE/YYYY-mm-dd.mp4
         '''
         conf = {'user':self.user,
                 'passwd':self.passwd,
@@ -110,6 +107,15 @@ class QwatchCapture(object):
         else:
             self.logger.info('Finished')
             os.renames('example.log', self.log)
+
+    ##############################
+    def timelapse(self):
+        '''
+        To ffmpeg:
+        $ ffmpeg -y -f image2 -r 15 -pattern_type glob -i '$BASE/YYYY/mm/dd/*.jpg' -r 15 -an -vcodec libx264 -pix_fmt yuv420p video.mp4
+        $ mv video.mp4 $BASE/YYYY-mm-dd.mp4
+        '''
+        pass
 
         # ## ffmpeg-ing
         # ## pbweb
@@ -193,4 +199,4 @@ if __name__ == '__main__':
 
         ## Run
         print(qw)
-        qw.run()
+        qw.capture()
