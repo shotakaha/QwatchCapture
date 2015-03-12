@@ -102,8 +102,7 @@ class QwatchCapture(object):
         else:
             t = datetime.datetime.strptime(date, '%Y/%m/%d')
 
-
-        tf = time.strftime('%Y/%m/%d', t.timetuple())
+        tf = time.strftime('snapshots/%Y/%m/%d', t.timetuple())
         d = os.path.join(self.base, tf)
         if not os.path.exists(d):
             self.logger.error('No such directory : "{0}"".'.format(d))
