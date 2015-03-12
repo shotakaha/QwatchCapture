@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+import datetime
 import argparse
 import ConfigParser
 
@@ -72,6 +73,40 @@ class QwatchCapture(object):
         '''
         self.logfile = logfile
 
+    ##################################################
+    def set_ffmpeg(self, ifr, ofr, vcodec, pixfmt, ofn):
+        '''
+        Set option for ffmpeg
+        '''
+        self.ifr = ifr
+        self.ofr = ofr
+        self.vcodec = vcodec
+        self.pixfmt = pixfmt
+        self.ofn = ofn
+
+    ##################################################
+    def set_date(self, date):
+        '''
+        Read date and return directory
+        '''
+        t = date
+        if date == 'today':
+            t = datetime.date.today()
+        elif date == 'yesterday':
+            t = datetime.date.today() - datetime.timedelta(1)
+        else:
+            t = datetime.datetime.strptime(date, '%Y/%m/%d')
+
+
+        tf = time.strftime('%Y/%m/%d', t.timetuple())
+        d = os.path.join(self.base, tf)
+        if not os.path.exists(d):
+            self.logger.error('No such directory : "{0}"".'.format(d))
+            self.logger.error('(>W<)')
+            sys.exit()
+        else:
+            self.date = t
+            self.pattern = d
 
     ##############################
     def capture(self):
@@ -104,7 +139,7 @@ class QwatchCapture(object):
             message = 'OSError({0}): {1}'.format(errno, strerror)
             self.logger.error(message)
         else:
-            self.logger.info('Finished')
+            self.logger.info('Finished CAPTURE')
             os.renames('example.log', self.log)
 
     ##############################
@@ -114,21 +149,33 @@ class QwatchCapture(object):
         $ ffmpeg -y -f image2 -r 15 -pattern_type glob -i '$BASE/YYYY/mm/dd/*.jpg' -r 15 -an -vcodec libx264 -pix_fmt yuv420p video.mp4
         $ mv video.mp4 $BASE/YYYY-mm-dd.mp4
         '''
-        pass
+        conf = {'ifr':self.ifr,
+                'pattern':os.path.join(self.pattern, '*.jpg'),
+                'ofr':self.ofr,
+                'vcodec':self.vcodec,
+                'pixfmt':self.pixfmt,
+                'ofn':self.ofn,
+                'date':self.date}
 
-        # ## ffmpeg-ing
-        # ## pbweb
-        # datedir = time.strftime('%Y/%m/%d/', time.localtime())
-        # pattern = os.path.join(self.base, datedir, '*.jpg')
-        # video = 'video.mp4'
+        ## ffmpeg-ing
+        ffmpeg = "ffmpeg -y -f image2 -r {ifr} -pattern_type glob -i '{pattern}' -r {ofr} -an -vcodec {vcodec} -pix_fmt {pixfmt} {ofn}"
+        message = 'Execute ffmpeg ... '.format(**conf)
+        self.logger.info(message)
+        os.system(ffmpeg.format(**conf))
 
-        # ffmpeg_in = "-y -f image2 -r 15 -pattern_type glob -i '{0}'".format(pattern)
-        # ffmpeg_out = "-r 15 -an -vcodec libx264 -pix_fmt yuv420p {0}".format(video)
-        # ffmpeg = 'ffmpeg {0} {1}'.format(ffmpeg_in, ffmpeg_out)
         # self.logger.info(ffmpeg)
         # os.system(ffmpeg)
-        # mp4file = os.path.join(self.base, '{0}.mp4'.format(time.strftime('%Y-%m-%d')))
-        # os.rename(video, mp4file)
+        mp4file = os.path.join(self.base, '{date}.mp4'.format(**conf))
+        try:
+            message = 'Rename ... {ofn} -> {0}'.format(mp4file, **conf)
+            self.logger.info(message)
+            os.renames('{ofn}'.format(**conf), mp4file)
+        except OSError as (errno, strerror):
+            message = 'OSError({0}): {1}'.format(errno, strerror)
+            self.logger.error(message)
+        else:
+            self.logger.info('Finished FFMPEG')
+            os.renames('example.log', self.log)
 
 ##################################################
 if __name__ == '__main__':
