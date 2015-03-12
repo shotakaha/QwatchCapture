@@ -6,18 +6,7 @@ import time
 import datetime
 import argparse
 import ConfigParser
-
 import logging
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S',
-                    filename='example.log',
-                    filemode='w')
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-formatter = logging.Formatter('%(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s')
-console.setFormatter(formatter)
-logging.getLogger('').addHandler(console)
 
 ##################################################
 class QwatchCapture(object):
@@ -44,7 +33,7 @@ class QwatchCapture(object):
         # self.mp4file = os.path.join(self.base, datedir, 'timelapse', mp4)
         self.jpgfile = os.path.join(self.base, jpg)
         self.mp4file = os.path.join(self.base, mp4)
-        self.logger = logging.getLogger('QwatchCapture')
+        self.set_logger()
 
     ##############################
     def __str__(self):
@@ -56,6 +45,20 @@ class QwatchCapture(object):
         self.logger.info('uri  : {0}'.format(self.uri))
         self.logger.info('base : {0}'.format(self.base))
         return ''
+
+    ##############################
+    def set_logger(self):
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s %(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S',
+                            filename=self.log,
+                            filemode='w')
+        console = logging.StreamHandler()
+        console.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s')
+        console.setFormatter(formatter)
+        logging.getLogger('').addHandler(console)
+        self.logger = logging.getLogger('QwatchCapture')
 
     ##############################
     def set_tries(self, tries):
