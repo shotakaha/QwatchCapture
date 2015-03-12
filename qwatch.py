@@ -49,6 +49,7 @@ class QwatchCapture(object):
 
     ##############################
     def set_logger(self):
+        self.logger = logging.getLogger('QwatchCapture')
         logging.basicConfig(level=logging.DEBUG,
                             format='%(asctime)s %(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S',
@@ -58,8 +59,7 @@ class QwatchCapture(object):
         console.setLevel(logging.INFO)
         formatter = logging.Formatter('%(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s')
         console.setFormatter(formatter)
-        logging.getLogger('').addHandler(console)
-        self.logger = logging.getLogger('QwatchCapture')
+        self.logger.addHandler(console)
 
     ##############################
     def set_tries(self, tries):
