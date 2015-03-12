@@ -35,9 +35,15 @@ class QwatchCapture(object):
         self.uri = uri
         self.base = base
         self.log = log
-        datedir = time.strftime('%Y/%m/%d/', time.localtime())
-        jpg = time.strftime('%Y-%m%d-%H%M-%S.jpg', time.localtime())
-        self.jpgfile = os.path.join(self.base, datedir, jpg)
+        # datedir = time.strftime('%Y/%m/%d/', time.localtime())
+        # jpg = time.strftime('%Y-%m%d-%H%M-%S.jpg', time.localtime())
+        # mp4 = time.strftime('%Y-%m-%d.mp4', time.localtime())
+        jpg = 'snapshots/%Y/%m/%d/%Y-%m%d-%H%M-%S.jpg'
+        mp4 = 'timelapse/%Y-%m-%d.mp4'
+        # self.jpgfile = os.path.join(self.base, datedir, 'snapshots', jpg)
+        # self.mp4file = os.path.join(self.base, datedir, 'timelapse', mp4)
+        self.jpgfile = os.path.join(self.base, jpg)
+        self.mp4file = os.path.join(self.base, mp4)
         self.logger = logging.getLogger('QwatchCapture')
 
     ##############################
@@ -49,7 +55,6 @@ class QwatchCapture(object):
         self.logger.info('name : {0}'.format(self.name))
         self.logger.info('uri  : {0}'.format(self.uri))
         self.logger.info('base : {0}'.format(self.base))
-        self.logger.info('jpg  : {0}'.format(self.jpgfile))
         return ''
 
     ##############################
@@ -122,7 +127,7 @@ class QwatchCapture(object):
                 'tries':self.tries,
                 'timeout':self.timeout,
                 'logfile':self.logfile,
-                'jpgfile': self.jpgfile}
+                'jpgfile': time.strftime(self.jpgfile)}
 
         wget = 'wget --http-user={user} --http-password={passwd} -T {timeout} -t {tries} -a {logfile} {uri}'
         message = 'Execute wget ... See {logfile} for detail.'.format(**conf)
@@ -164,8 +169,7 @@ class QwatchCapture(object):
         os.system(ffmpeg.format(**conf))
 
         # self.logger.info(ffmpeg)
-        # os.system(ffmpeg)
-        mp4file = os.path.join(self.base, '{date}.mp4'.format(**conf))
+        mp4file = time.strftime(self.mp4file, self.date.timetuple())
         try:
             message = 'Rename ... {ofn} -> {0}'.format(mp4file, **conf)
             self.logger.info(message)
