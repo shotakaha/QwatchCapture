@@ -13,9 +13,9 @@
 #+LANGUAGE: ja
 #+SELECT_TAGS: export
 
-* 何をするものか？
+* 何をするものなのか？
 
-  IO-DATAのQwatchを使って定点観測するためのPythonスクリプトです。
+  IO-DATAのQwatchを使って定点観測するためのPythonスクリプト
 
 * 動作環境
 
@@ -34,7 +34,7 @@ $ wget --http-user=USER --http-password=PASS http://QwatchIPADDRESS/snapshot.jpg
 $ mv snapshot.jpg snapshots/YYYY-MMDD-hhmm-ss.jpg
 #+end_src
 
-  - 画像がある程度たまったら、早送り動画にする
+  - 画像がある程度たまったら、タイムラプス動画（早送り動画）にする
 
 #+begin_src bash
 $ ffmpeg -y -f image2 -r 15 -pattern_type glob -i 'snapshots/*.jpg' -r 15 -an -vcodec libx264 -pix_fmt yuv420p video.mp4
@@ -65,18 +65,30 @@ $ mv video.mp4 snapshots/
 #+begin_src config
 [WEBCAM]
 name = CAMNAME
-uri = http://QW-ADDRESS/snapshot.jpg
+uri = http://QWatchADDRESS/snapshot.jpg
 user = USER
 pass = PASS
-base = WEBHOME/%(name)s
+base = snapshots/%(name)s
 #+end_src
 
-    - 大文字の部分を書き換えればよい
-    - baseは保存先ディレクトリのつもり
-      - 中で日付ごとに保存される
-      - 「$WEBHOME/$CAMNAME/2015/03/11/2015-0311-2230-15.jpg」みたいな感じ
+    - WEBCAM :: ConfigParserで「セクション」と呼ぶ。カメラごとに異なった名前にする。
+    - name :: 名前。カメラ毎に保存先を分けるために使う。（全部同じにしても動くが、後で編集することを考えると非推奨）
+    - uri :: JPEGファイルの場所。TS-WLCAMシリーズの場合は「QwatchADDRESS」の部分を該当のIPアドレスに書き換えればOK
+    - user :: ユーザー名
+    - pass :: パスワード
+    - base :: 画像を保存するディレクトリ。%(name)sの部分は、上にある「name」で置換される。
 
-*** 複数台カメラを設定する場合
+*** 画像の保存先
+
+    - 例 :: snapshots/CAMNAME/2015/03/11/2015-0311-2230-15.jpg
+    - スクリプト内部で日付ごとにリネームしている
+    - ブラウザで確認したい場合は、snapshots を公開ディレクトリへのシンボリックにするとよい
+
+#+begin_src bash
+$ ln -s ~/public_html/qwatch/snap snapthots
+#+end_src
+
+*** 複数台カメラを設定する場合（みかくにん）
 
     - １台ごとにconfファイルを用意して、引数にしてもOK
     - １つのconfファイルに複数台の設定を書いてもOK
@@ -84,65 +96,61 @@ base = WEBHOME/%(name)s
 #+begin_src config
 [WEBCAM1]
 name = CAMNAME1
-uri = http://QW-ADDRESS-1/snapshot.jpg
+uri = http://QWatchADDRESS-1/snapshot.jpg
 user = USER
 pass = PASS
 base = WEBHOME/%(name)s
 
 [WEBCAM2]
 name = CAMNAME2
-uri = http://QW-ADDRESS-2/snapshot.jpg
+uri = http://QWatchADDRESS-2/snapshot.jpg
 user = USER
 pass = PASS
 base = WEBHOME/%(name)s
 #+end_src
 
-    - セクション（WEBCAM1、WEBCAM2の部分）は違うものにする
-      - 同じにすると、あとの設定に上書きされるので注意
-    - 同じ場所に画像を保存したい場合は「name」を一緒にする
-      - あとで動画を作ることを考えると非推奨
 
-** 実行する
+** キャプチャを実行する
 
    - confファイルを引数にして実行する
 
   #+begin_src bash
-  $ ./qwatch.py QWCONF.conf
+  $ ./qwcapture.py QWCONF.conf
   #+end_src
 
    - 複数のconfファイルを指定することもできる
 
 #+begin_src bash
-$ ./qwatch.py QWCONF.conf QWCONF2.conf
+$ ./qwcapture.py QWCONF.conf QWCONF2.conf
 #+end_src
 
-*** ヘルプを見る
+*** オプションについて
 
-    - オプションについてはヘルプを確認して下さい
+    - いちおうwgetのオプションが使えるようになっている
+    - ヘルプを確認して下さい
 
 #+begin_src bash
 $ ./qwatch.py -h
 #+end_src
 
+** タイムラプス動画の作成
 
-** 画像の保存先
-
-   - confファイルの「base」を元にディレクトリを作成する
-     - ファイル名は「base/name/YYYY/MM/DD/YYYY-MMDD-hhmm-ss.jpg」
-   - ウェブページでチェックしたい場合は、baseの部分をそこまでのシンボリックにするといい
-     - なんかうまく説明できていないけれど、各自で考えてください
+   - これから作る予定
 
 ** cronに登録する
 
-   - cronの編集には「crontab」コマンドを使用する
-     - いろいろ調べると、cronファイルを作成し、crontabに食べさせるのがよいらしい
-     - /etc/cron.d/の直接編集、「crontab -e」による編集はしないほうが安全
-   - crontabは上書きされてしまうので、既に設定がある人はリダイレクト使ってバックアップを取るといいかも
+   - qwcron.example をコピーして、mycron.txtを作成する（拡張子はなんでもよい）
 
 #+begin_src bash
-$ crontab crontab.example   ## Read crontab from file
-$ crontab -l                ## Check crontab
-$ crontab -l > cron.bk      ## Easy back up
+$ cp qwcron.example mycron.txt    ## Copy example and modify
+$ crontab mycron.txt              ## Eat mycron.txt
+$ crontab -l                      ## Check crontab
+#+end_src
+
+   - crontabは上書きされてしまうので、すでに設定がある場合はバックアップを取っておく
+
+#+begin_src bash
+$ crontab -l > mycront.bk    ## Backup crontab
 #+end_src
 
 *** cronの書式
