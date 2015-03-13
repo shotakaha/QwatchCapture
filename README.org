@@ -1,7 +1,6 @@
 #+TITLE: QwatchCapture
-#+DATE: <2015-03-10 Tue>
+#+DATE: <2015-03-13 Fri>
 #+AUTHOR: Shota TAKAHASHI
-#+EMAIL: shotakaha@gmail.com
 #+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:nil arch:headline
 #+OPTIONS: author:t c:nil creator:comment d:(not "LOGBOOK") date:t
 #+OPTIONS: e:t email:nil f:t inline:t num:t p:nil pri:nil stat:t
@@ -17,17 +16,42 @@
 
   IO-DATAのQwatchを使って定点観測するためのPythonスクリプト
 
+** クイックスタート
+
+   - とりあえず画像キャプチャ
+
+#+begin_src
+$ git clone https://github.com/shotakaha/QwatchCapture.git
+$ cd QwatchCapture/
+$ cp qwconf.example myconf.conf    ## --> edit myconf.conf
+$ ./qwcapture.py myconf.conf
+#+end_src
+
+   - 自動実行したい場合
+
+#+begin_src
+$ cp qwcron.example mycron.txt    ## --> edit mycron.txt
+$ crontab mycron.txt
+#+end_src
+
 * 動作環境
+
+** ウェブカメラ
 
   - [[http://www.iodata.jp/product/lancam/lancam/ts-wlcam/][IO-DATA Qwatch TS-WLCAMシリーズ]]
     - USBケーブルしか付属してないので注意
     - TS-WLCAM用ADアダプター（[[http://www.ioplaza.jp/shop/g/g60-TVCXGA2-001/][TVC-XGA2]]）があるとよい
-  - MacOS X(10.10 Yosemite) + Python 2.7.9
-  - Ubuntu (14.04LTS) + Python 2.7.6 + ffmpeg 2.6
+
+** パソコン
+
+  - MacOS X(10.10 Yosemite) + Python(2.7.9) + wget(1.16.2) + ffmpeg(2.6)
+  - Ubuntu (14.04LTS) + Python(2.7.6) + wget(1.15) + ffmpeg(2.6)
 
 * やってること
 
   - wgetで画像を取ってきて、その時の時刻でリネームする
+    - 画像のURLは http://www.ispyconnect.com/man.aspx?n=IO+Data で調べた
+    - 右上の検索ボックスに型番とか入れるとたぶん見つかる
 
 #+begin_src bash
 $ wget --http-user=USER --http-password=PASS http://QwatchIPADDRESS/snapshot.jpg
@@ -180,7 +204,7 @@ QWCONFIGS=  ## confファイルを指定（複数指定できる、半角スペ�
 */10 * * * * `cd $QWDIR && ./qwcapture.py $QWCONFIG`
 #+end_src
 
-*** 1時間ごとにタイムラプス動画を作る場合（みかくにん）
+*** 1時間ごとにタイムラプス動画を作る場合
 
     - 毎時5分に作成（キャプチャの実行と時間をずらしてある）
     - 毎日00時08分に、前日の動画をまとめる（これも時間をずらしてある）
@@ -198,4 +222,30 @@ QWCONFIGS=  ## confファイルを指定（複数指定できる、半角スペ�
 $ tail /var/log/syslog
 $ sudo ls -ltrh /var/spool/nullmailer/queue/ | tail   ## ログファイル名、タイムスタンプ、サイズを確認する
 $ sudo less /var/spool/nullmailer/queue/LOGFILE       ## 上で調べたLOGFILE名の中には、cron実行時のログが吐き出されている
+#+end_src
+
+* その他
+
+** FFmpegのインストール
+
+*** MacOS Xの場合
+
+    - MacPortsを使って ffmpeg をインストールする
+      - variants はお好みで
+
+#+begin_src
+$ sudo port install ffmpeg
+#+end_src
+
+** Ubuntuの場合
+
+   - 14.04 LTS ではそのままではapt-getできないみたいなので、PPAリポジトリを追加する
+   - 詳しくは https://launchpad.net/~mc3man/+archive/ubuntu/trusty-media を読むこと
+     - 14.10 以上にアップグレードしないほうがいいらしい。その場合はクリーンインストールがオススメだそう。
+
+#+begin_src bash
+$ sudo add-apt-repository ppa:mc3man/trusty-media
+$ sudo apt-get update
+$ sudo apt-get dist-upgrade
+$ sudo apt-get install ffmpeg
 #+end_src
