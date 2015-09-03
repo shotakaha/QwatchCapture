@@ -12,9 +12,9 @@
 #+LANGUAGE: ja
 #+SELECT_TAGS: export
 
-* 何をするものなのか？
+* できること
 
-  IO-DATAのQwatchを使って定点観測するためのPythonスクリプト
+  ウェブカメラを使って定点観測＆タイムラプス動画の自動生成ができるPythonスクリプト
 
 ** クイックスタート
 
@@ -49,23 +49,30 @@ $ crontab mycron.txt
 
 * やってること
 
-  - wgetで画像を取ってきて、その時の時刻でリネームする
-    - 画像のURLは http://www.ispyconnect.com/man.aspx?n=IO+Data で調べた
-    - 右上の検索ボックスに型番とか入れるとたぶん見つかる
+** 画像のキャプチャ
+
+   - ウェブカメラ内に保存されている画像を wget を使って取得
+     - 画像のURLは http://www.ispyconnect.com/man.aspx?n=IO+Data で調べた
+     - 右上の検索ボックスに型番とか入れるとたぶん見つかる
+   - 取得した画像は、その時の時刻でリネーム
 
 #+begin_src bash
 $ wget --http-user=USER --http-password=PASS http://QwatchIPADDRESS/snapshot.jpg
 $ mv snapshot.jpg snapshots/YYYY-MMDD-hhmm-ss.jpg
 #+end_src
 
-  - 画像がある程度たまったら、タイムラプス動画（早送り動画）にする
+** タイムラプス動画の生成
+
+   - 画像がある程度たまったら ffmpeg を使って連結
 
 #+begin_src bash
 $ ffmpeg -y -f image2 -r 15 -pattern_type glob -i 'snapshots/*.jpg' -r 15 -an -vcodec libx264 -pix_fmt yuv420p video.mp4
 $ mv video.mp4 snapshots/
 #+end_src
 
-  - これらの動作をcronに食べさせて、定期的に実行している
+** 自動実行
+
+   - これらの動作をcronに食べさせて、定期的に実行している
 
 
 ** もうちょいやってること
