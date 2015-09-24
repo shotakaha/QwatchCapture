@@ -23,32 +23,33 @@ Welcome to QwatchCapture's documentation!
 
    $ git clone https://github.com/shotakaha/QwatchCapture.git
    $ cd QwatchCapture/
-   $ cp qwconf.example myconf.conf    ## --> edit myconf.conf
+   $ cp qwconf.example myconf.conf    ## --> myconf.confを編集する
    $ ./qwcapture.py myconf.conf
 
 - 自動実行したい場合
 
 .. code-block:: bash
 
-   $ cp qwcron.example mycron.txt    ## --> edit mycron.txt
+   $ cp qwcron.example mycron.txt    ## --> mycron.txtを編集する
    $ crontab mycron.txt
 
 
 動作環境
 ==================================================
 
-ウェブカメラ
---------------------------------------------------
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 1,3
 
-  - [[http://www.iodata.jp/product/lancam/lancam/ts-wlcam/][IO-DATA Qwatch TS-WLCAMシリーズ]]
-    - USBケーブルしか付属してないので注意
-    - TS-WLCAM用ADアダプター（[[http://www.ioplaza.jp/shop/g/g60-TVCXGA2-001/][TVC-XGA2]]）があるとよい
-
-パソコン
---------------------------------------------------
-
-  - MacOS X(10.10 Yosemite) + Python(2.7.9) + wget(1.16.2) + ffmpeg(2.6)
-  - Ubuntu (14.04LTS) + Python(2.7.6) + wget(1.15) + ffmpeg(2.6)
+   * - 項目
+     - 型番とか
+   * - ウェブカメラ
+     - | `IO-DATA Qwatch TS-WLCAMシリーズ <http://www.iodata.jp/product/lancam/lancam/ts-wlcam/>`_
+       | USBケーブルしか付属してないので、電源TS-WLCAM用ADアダプター（ `TVC-XGA2 <http://www.ioplaza.jp/shop/g/g60-TVCXGA2-001/>`_ ）があるとよい
+   * - パソコン
+     - | MacOS X(10.10 Yosemite) + Python(2.7.9) + wget(1.16.2) + ffmpeg(2.6)
+       | Ubuntu (14.04LTS) + Python(2.7.6) + wget(1.15) + ffmpeg(2.6)
 
 
 やってること
@@ -58,10 +59,10 @@ Welcome to QwatchCapture's documentation!
 画像のキャプチャ
 --------------------------------------------------
 
-   - ウェブカメラ内に保存されている画像を wget を使って取得
-     - 画像のURLは http://www.ispyconnect.com/man.aspx?n=IO+Data で調べた
-     - 右上の検索ボックスに型番とか入れるとたぶん見つかる
-   - 取得した画像は、その時の時刻でリネーム
+- ウェブカメラ内に保存されている画像を :command:`wget` を使って取得
+- 画像のURLは http://www.ispyconnect.com/man.aspx?n=IO+Data で調べた
+- 右上の検索ボックスに型番とか入れるとたぶん見つかる
+- 取得した画像は、その時の時刻でリネーム
 
 .. code-block:: bash
 
@@ -72,7 +73,7 @@ Welcome to QwatchCapture's documentation!
 タイムラプス動画の生成
 --------------------------------------------------
 
-   - 画像がある程度たまったら ffmpeg を使って連結
+- 画像がある程度たまったら :command:`ffmpeg` を使って連結
 
 .. code-block:: bash
 
@@ -80,22 +81,24 @@ Welcome to QwatchCapture's documentation!
    $ mv video.mp4 snapshots/
 
 
-
 自動実行
 --------------------------------------------------
 
-   - これらの動作をcronに食べさせて、定期的に実行している
+- これらの動作を :command:`cron` に食べさせて、定期的に実行している
 
 
 もうちょいやってること
 --------------------------------------------------
 
-   - ユーザ情報（USER、PASS）をファイル中に書くのは嫌
-     - PythonのConfigParserモジュールを使って外部ファイルから読むことにする
-   - 以下のwgetのオプションを使えるようにしている
-     - アクセスできなかった場合にタイムアウトする秒数（デフォルト 10秒に設定）
-     - タイムアウトした際にリトライする回数（デフォルト 1回に設定）
-     - ログをファイルを残すときのファイル名（デフォルト qwatch.logに設定）
+- ユーザ情報（ ``USER`` 、 ``PASS`` ）をファイル中に書くのは嫌
+
+  - PythonのConfigParserモジュールを使って外部ファイルから読むことにする
+
+- 以下の :command:`wget` のオプションを使えるようにしている
+
+  - アクセスできなかった場合にタイムアウトする秒数（デフォルト 10秒に設定）
+  - タイムアウトした際にリトライする回数（デフォルト 1回に設定）
+  - ログをファイルを残すときのファイル名（デフォルト :file:`qwatch.log` に設定）
 
 使い方
 ==================================================
@@ -103,13 +106,13 @@ Welcome to QwatchCapture's documentation!
 設定ファイルを用意する
 --------------------------------------------------
 
-   - qwconf.exampleをコピーしてmyconf.confを新規に作成する
-   - myconf.confの中身を自分のQwatchの設定に書き換える
+- :file:`qwconf.example` をコピーして :file:`myconf.conf` を新規に作成する
+- :file:`myconf.conf` の中身を自分のQwatchの設定に書き換える
 
 設定ファイルの書式
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: config
+.. code-block:: python
 
    [WEBCAM]
    name = CAMNAME
@@ -119,12 +122,32 @@ Welcome to QwatchCapture's documentation!
    base = EXPERIMENTS/%(name)s
 
 
-- WEBCAM :: ConfigParserで「セクション」と呼ぶ。カメラごとに異なった名前にする。
-- name :: 名前。カメラ毎に保存先を分けるために使う。（全部同じにしても動くが、後で編集することを考えると非推奨）
-- uri :: JPEGファイルの場所。TS-WLCAMシリーズの場合は「QwatchADDRESS」の部分を該当のIPアドレスに書き換えればOK
-- user :: ユーザー名
-- pass :: パスワード
-- base :: 画像／動画を保存するディレクトリ。%(name)sの部分は、上にある「name」で置換される。EXPERIMENTSには各実験グループ名（とか用途）をいれるつもり。
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 1,3
+
+   * - 変数名
+     - 説明
+   * - ``WEBCAM``
+     - | ConfigParserで「セクション」と呼ぶ。
+       | カメラごとに異なった名前にする。
+   * - ``name``
+     - | 名前。
+       | カメラ毎に保存先を分けるために使う。
+       | （全部同じにしても動くが、後で編集することを考えると非推奨）
+   * - ``uri``
+     - | JPEGファイルの場所。
+       | TS-WLCAMシリーズの場合は「QwatchADDRESS」の部分を該当のIPアドレスに書き換えればOK
+   * - ``user``
+     - ユーザー名
+   * - ``pass``
+     - パスワード
+   * - ``base``
+     - | 画像／動画を保存するディレクトリ。
+       | %(name)sの部分は、上にある「name」で置換される。
+       | EXPERIMENTSには各実験グループ名（とか用途）をいれるつもり。
+
 
 
 画像／動画の保存先
@@ -132,14 +155,15 @@ Welcome to QwatchCapture's documentation!
 
 - スクリプト内部で日付ごとに管理している
 - ファイルパスの例
-  - 画像 :: EXPERIMENTS/CAMNAME/snapshots/2015/03/11/2015-0311-2230-15.jpg
-  - 動画 :: EXPERIMENTS/CAMNAME/timelapse/2015-03-11.jpg
 
-- ブラウザで確認したい場合は、experiments を公開ディレクトリへのシンボリックにするとよい
+  :画像: :file:`EXPERIMENTS/CAMNAME/snapshots/2015/03/11/2015-0311-2230-15.jpg`
+  :動画: :file:`EXPERIMENTS/CAMNAME/timelapse/2015-03-11.jpg`
+
+- ブラウザで確認したい場合は ``EXPERIMENTS`` を公開ディレクトリへのシンボリックにするとよい
 
 .. code-block:: bash
 
-   $ ln -s ~/public_html/qwatch/snap experiments
+   $ ln -s ~/public_html/qwatch/snap EXPERIMENTS
 
 
 複数台カメラを設定する場合（みかくにん）
@@ -148,7 +172,7 @@ Welcome to QwatchCapture's documentation!
 - １台ごとにconfファイルを用意して、引数にしてもOK
 - １つのconfファイルに複数台の設定を書いてもOK
 
-.. code-block:: bash
+.. code-block:: python
 
    [WEBCAM1]
    name = CAMNAME1
@@ -166,7 +190,7 @@ Welcome to QwatchCapture's documentation!
 
 
 
-画像をキャプチャする : qwcapture
+画像をキャプチャする : ``qwcapture``
 --------------------------------------------------
 
 - confファイルを引数にして実行する
@@ -194,14 +218,14 @@ Welcome to QwatchCapture's documentation!
    $ ./qwatch.py -h
 
 
-タイムラプス動画の作成 : qwtimelapse
+タイムラプス動画の作成 : ``qwtimelapse``
 --------------------------------------------------
 
 - 日付とconfファイルを引数にして実行する
-- 日付には、「today」「yesterday」「YYYY/mm/dd の書式」が使える
-- 日付は *１個* しか指定できない（confファイルは複数指定できる）
-  - 基本的に毎日更新するため、複数日をまとめてやる必要が（とりあえず）ないと思うから
+- 日付には、「 ``today`` 」「 ``yesterday`` 」「 ``YYYY/mm/dd`` の書式」が使える
+- 日付は **１個** しか指定できない（confファイルは複数指定できる）
 
+  - 基本的に毎日更新するため、複数日をまとめてやる必要が（とりあえず）ないと思うから
 
 .. code-block:: bash
 
@@ -211,7 +235,7 @@ Welcome to QwatchCapture's documentation!
 cronに登録する
 --------------------------------------------------
 
-- qwcron.example をコピーして、mycron.txtを作成する（拡張子はなんでもよい）
+- :file:`qwcron.example` をコピーして :file:`mycron.txt` を作成する（拡張子はなんでもよい）
 
 .. code-block:: bash
 
@@ -220,7 +244,7 @@ cronに登録する
    $ crontab -l                      ## Check crontab
 
 
-- crontabは上書きされてしまうので、すでに設定がある場合はバックアップを取っておく
+- :command:`crontab` は上書きされてしまうので、すでに設定がある場合はバックアップを取っておく
 
 .. code-block:: bash
 
@@ -266,7 +290,7 @@ cronの書式
 
 - cronのログは以下のディレクトリ／ファイルで確認できる
 
-.. code-block:: text
+.. code-block:: bash
 
    $ tail /var/log/syslog
    $ sudo ls -ltrh /var/spool/nullmailer/queue/ | tail   ## ログファイル名、タイムスタンプ、サイズを確認する
@@ -282,30 +306,31 @@ FFmpegのインストール
 MacOS Xの場合
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    - MacPortsを使って ffmpeg をインストールする
-      - variants はお好みで
+- MacPortsを使って :command:`ffmpeg` をインストールする（ :command:`variants` はお好みで）
 
-#+begin_src
-$ sudo port install ffmpeg
-#+end_src
+.. code-block:: bash
+
+   $ sudo port install ffmpeg
+
 
 Ubuntuの場合
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   - 14.04 LTS ではそのままではapt-getできないみたいなので、PPAリポジトリを追加する
-   - 詳しくは https://launchpad.net/~mc3man/+archive/ubuntu/trusty-media を読むこと
-     - 14.10 以上にアップグレードしないほうがいいらしい。その場合はクリーンインストールがオススメだそう。
+- ``14.04 LTS`` ではそのままでは :command:`apt-get` できないみたいなので、PPAリポジトリを追加する
+- 詳しくは https://launchpad.net/~mc3man/+archive/ubuntu/trusty-media を読むこと
+- ``14.10`` 以上にアップグレードしないほうがいいらしい。その場合はクリーンインストールがオススメだそう。
 
-#+begin_src bash
-$ sudo add-apt-repository ppa:mc3man/trusty-media
-$ sudo apt-get update
-$ sudo apt-get dist-upgrade
-$ sudo apt-get install ffmpeg
-#+end_src
+.. code-block:: bash
+
+   $ sudo add-apt-repository ppa:mc3man/trusty-media
+   $ sudo apt-get update
+   $ sudo apt-get dist-upgrade
+   $ sudo apt-get install ffmpeg
+
 
 
 Indices and tables
-==================
+==================================================
 
 * :ref:`genindex`
 * :ref:`modindex`
