@@ -20,10 +20,6 @@ Welcome to QwatchCapture's documentation!
 
 
 
-
-
-
-
 Indices and tables
 ==================================================
 
