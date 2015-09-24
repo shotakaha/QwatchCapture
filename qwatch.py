@@ -3,20 +3,10 @@
 import os
 import sys
 import time
+import datetime
 import argparse
 import ConfigParser
-
 import logging
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S',
-                    filename='example.log',
-                    filemode='w')
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-formatter = logging.Formatter('%(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s')
-console.setFormatter(formatter)
-logging.getLogger('').addHandler(console)
 
 ##################################################
 class QwatchCapture(object):
@@ -34,10 +24,12 @@ class QwatchCapture(object):
         self.uri = uri
         self.base = base
         self.log = log
-        datedir = time.strftime('%Y/%m/%d/', time.localtime())
-        jpg = time.strftime('%Y-%m%d-%H%M-%S.jpg', time.localtime())
-        self.jpgfile = os.path.join(self.base, datedir, jpg)
-        self.logger = logging.getLogger('QwatchCapture')
+
+        jpgfmt = 'snapshots/%Y/%m/%d/%Y-%m%d-%H%M-%S.jpg'
+        mp4fmt = 'timelapse/%Y-%m-%d.mp4'
+        self.jpgfile = os.path.join(self.base, jpgfmt)
+        self.mp4file = os.path.join(self.base, mp4fmt)
+        self.set_logger()
 
     ##############################
     def __str__(self):
@@ -48,8 +40,22 @@ class QwatchCapture(object):
         self.logger.info('name : {0}'.format(self.name))
         self.logger.info('uri  : {0}'.format(self.uri))
         self.logger.info('base : {0}'.format(self.base))
-        self.logger.info('jpg  : {0}'.format(self.jpgfile))
+        self.logger.info('log  : {0}'.format(self.log))
         return ''
+
+    ##############################
+    def set_logger(self):
+        self.logger = logging.getLogger('QwatchCapture')
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s %(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S',
+                            filename=self.log,
+                            filemode='w')
+        console = logging.StreamHandler()
+        console.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(levelname)-8s %(name)-12s %(module)s.%(funcName)-20s %(message)s')
+        console.setFormatter(formatter)
+        self.logger.addHandler(console)
 
     ##############################
     def set_tries(self, tries):
@@ -72,6 +78,42 @@ class QwatchCapture(object):
         '''
         self.logfile = logfile
 
+    ##################################################
+    def set_ffmpeg(self, ifr, ofr, vcodec, pixfmt, ofn):
+        '''
+        Set option for ffmpeg
+        '''
+        self.ifr = ifr
+        self.ofr = ofr
+        self.vcodec = vcodec
+        self.pixfmt = pixfmt
+        self.ofn = ofn
+
+    ##################################################
+    def set_date(self, date):
+        '''
+        Read date and return directory
+        '''
+        dt = date
+        if date == 'today':
+            dt = datetime.date.today()
+        elif date == 'yesterday':
+            dt = datetime.date.today() - datetime.timedelta(1)
+        else:
+            dt = datetime.datetime.strptime(date, '%Y/%m/%d')
+
+        self.logger.debug(self.jpgfile)
+        self.logger.debug(os.path.dirname(self.jpgfile))
+        d = time.strftime(os.path.dirname(self.jpgfile), dt.timetuple())
+        self.logger.debug(d)
+
+        if not os.path.exists(d):
+            self.logger.error('No such directory : "{0}".'.format(d))
+            self.logger.error('(>W<)')
+            sys.exit()
+        else:
+            self.date = dt
+            self.pattern = os.path.join(d, '*.jpg')
 
     ##############################
     def capture(self):
@@ -81,14 +123,21 @@ class QwatchCapture(object):
         $ mv snapshot.jpg $BASE/YYYY/mm/dd/YYYY-mmdd-HHMM-SS.jpg
 
         '''
+        ## config for wget
         conf = {'user':self.user,
                 'passwd':self.passwd,
                 'uri':self.uri,
                 'tries':self.tries,
                 'timeout':self.timeout,
                 'logfile':self.logfile,
-                'jpgfile': self.jpgfile}
+                'jpgfile': time.strftime(self.jpgfile)}
 
+        self.logger.debug('uri     : {uri}'.format(**conf))
+        self.logger.debug('retries : {tries}'.format(**conf))
+        self.logger.debug('timeout : {timeout}'.format(**conf))
+        self.logger.debug('logfile : {logfile}'.format(**conf))
+
+        ## wget-ing
         wget = 'wget --http-user={user} --http-password={passwd} -T {timeout} -t {tries} -a {logfile} {uri}'
         message = 'Execute wget ... See {logfile} for detail.'.format(**conf)
         self.logger.info(message)
@@ -104,8 +153,7 @@ class QwatchCapture(object):
             message = 'OSError({0}): {1}'.format(errno, strerror)
             self.logger.error(message)
         else:
-            self.logger.info('Finished')
-            os.renames('example.log', self.log)
+            self.logger.info('Finished CAPTURE')
 
     ##############################
     def timelapse(self):
@@ -114,21 +162,38 @@ class QwatchCapture(object):
         $ ffmpeg -y -f image2 -r 15 -pattern_type glob -i '$BASE/YYYY/mm/dd/*.jpg' -r 15 -an -vcodec libx264 -pix_fmt yuv420p video.mp4
         $ mv video.mp4 $BASE/YYYY-mm-dd.mp4
         '''
-        pass
+        ## config for ffmpeg
+        conf = {'ifr':self.ifr,
+                'pattern':self.pattern,
+                'ofr':self.ofr,
+                'vcodec':self.vcodec,
+                'pixfmt':self.pixfmt,
+                'ofn':self.ofn,
+                'date':self.date}
 
-        # ## ffmpeg-ing
-        # ## pbweb
-        # datedir = time.strftime('%Y/%m/%d/', time.localtime())
-        # pattern = os.path.join(self.base, datedir, '*.jpg')
-        # video = 'video.mp4'
+        self.logger.debug('input frame rate  : {ifr}'.format(**conf))
+        self.logger.debug('output frame rate : {ofr}'.format(**conf))
+        self.logger.debug('vcodec            : {vcodec}'.format(**conf))
+        self.logger.debug('pixel format      : {pixfmt}'.format(**conf))
+        self.logger.debug('output filename   : {ofn}'.format(**conf))
 
-        # ffmpeg_in = "-y -f image2 -r 15 -pattern_type glob -i '{0}'".format(pattern)
-        # ffmpeg_out = "-r 15 -an -vcodec libx264 -pix_fmt yuv420p {0}".format(video)
-        # ffmpeg = 'ffmpeg {0} {1}'.format(ffmpeg_in, ffmpeg_out)
+        ## ffmpeg-ing
+        ffmpeg = "ffmpeg -y -f image2 -r {ifr} -pattern_type glob -i '{pattern}' -r {ofr} -an -vcodec {vcodec} -pix_fmt {pixfmt} {ofn}"
+        message = 'Execute ffmpeg ... {pattern}'.format(**conf)
+        self.logger.info(message)
+        os.system(ffmpeg.format(**conf))
+
         # self.logger.info(ffmpeg)
-        # os.system(ffmpeg)
-        # mp4file = os.path.join(self.base, '{0}.mp4'.format(time.strftime('%Y-%m-%d')))
-        # os.rename(video, mp4file)
+        mp4file = time.strftime(self.mp4file, self.date.timetuple())
+        try:
+            message = 'Rename ... {ofn} -> {0}'.format(mp4file, **conf)
+            self.logger.info(message)
+            os.renames('{ofn}'.format(**conf), mp4file)
+        except OSError as (errno, strerror):
+            message = 'OSError({0}): {1}'.format(errno, strerror)
+            self.logger.error(message)
+        else:
+            self.logger.info('Finished FFMPEG')
 
 ##################################################
 if __name__ == '__main__':
@@ -161,7 +226,7 @@ if __name__ == '__main__':
     parser.set_defaults(conffile='conf.example',
                         number=1,
                         seconds=10,
-                        logfile='qw-wget.log')
+                        logfile='qwwget.log')
     ## Get args and options
     args = parser.parse_args()
 

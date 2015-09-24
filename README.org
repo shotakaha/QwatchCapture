@@ -1,7 +1,6 @@
 #+TITLE: QwatchCapture
-#+DATE: <2015-03-10 Tue>
+#+DATE: <2015-03-13 Fri>
 #+AUTHOR: Shota TAKAHASHI
-#+EMAIL: shotakaha@gmail.com
 #+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:nil arch:headline
 #+OPTIONS: author:t c:nil creator:comment d:(not "LOGBOOK") date:t
 #+OPTIONS: e:t email:nil f:t inline:t num:t p:nil pri:nil stat:t
@@ -13,35 +12,67 @@
 #+LANGUAGE: ja
 #+SELECT_TAGS: export
 
-* 何をするものなのか？
+* できること
 
-  IO-DATAのQwatchを使って定点観測するためのPythonスクリプト
+  ウェブカメラを使って定点観測＆タイムラプス動画の自動生成ができるPythonスクリプト
+
+** クイックスタート
+
+   - とりあえず画像キャプチャ
+
+#+begin_src
+$ git clone https://github.com/shotakaha/QwatchCapture.git
+$ cd QwatchCapture/
+$ cp qwconf.example myconf.conf    ## --> edit myconf.conf
+$ ./qwcapture.py myconf.conf
+#+end_src
+
+   - 自動実行したい場合
+
+#+begin_src
+$ cp qwcron.example mycron.txt    ## --> edit mycron.txt
+$ crontab mycron.txt
+#+end_src
 
 * 動作環境
+
+** ウェブカメラ
 
   - [[http://www.iodata.jp/product/lancam/lancam/ts-wlcam/][IO-DATA Qwatch TS-WLCAMシリーズ]]
     - USBケーブルしか付属してないので注意
     - TS-WLCAM用ADアダプター（[[http://www.ioplaza.jp/shop/g/g60-TVCXGA2-001/][TVC-XGA2]]）があるとよい
-  - MacOS X(10.10 Yosemite) + Python 2.7.9
-  - Ubuntu (14.04LTS) + Python 2.7.6 + ffmpeg 2.6
+
+** パソコン
+
+  - MacOS X(10.10 Yosemite) + Python(2.7.9) + wget(1.16.2) + ffmpeg(2.6)
+  - Ubuntu (14.04LTS) + Python(2.7.6) + wget(1.15) + ffmpeg(2.6)
 
 * やってること
 
-  - wgetで画像を取ってきて、その時の時刻でリネームする
+** 画像のキャプチャ
+
+   - ウェブカメラ内に保存されている画像を wget を使って取得
+     - 画像のURLは http://www.ispyconnect.com/man.aspx?n=IO+Data で調べた
+     - 右上の検索ボックスに型番とか入れるとたぶん見つかる
+   - 取得した画像は、その時の時刻でリネーム
 
 #+begin_src bash
 $ wget --http-user=USER --http-password=PASS http://QwatchIPADDRESS/snapshot.jpg
 $ mv snapshot.jpg snapshots/YYYY-MMDD-hhmm-ss.jpg
 #+end_src
 
-  - 画像がある程度たまったら、タイムラプス動画（早送り動画）にする
+** タイムラプス動画の生成
+
+   - 画像がある程度たまったら ffmpeg を使って連結
 
 #+begin_src bash
 $ ffmpeg -y -f image2 -r 15 -pattern_type glob -i 'snapshots/*.jpg' -r 15 -an -vcodec libx264 -pix_fmt yuv420p video.mp4
 $ mv video.mp4 snapshots/
 #+end_src
 
-  - これらの動作をcronに食べさせて、定期的に実行している
+** 自動実行
+
+   - これらの動作をcronに食べさせて、定期的に実行している
 
 
 ** もうちょいやってること
@@ -68,7 +99,7 @@ name = CAMNAME
 uri = http://QWatchADDRESS/snapshot.jpg
 user = USER
 pass = PASS
-base = snapshots/%(name)s
+base = EXPERIMENTS/%(name)s
 #+end_src
 
     - WEBCAM :: ConfigParserで「セクション」と呼ぶ。カメラごとに異なった名前にする。
@@ -76,16 +107,18 @@ base = snapshots/%(name)s
     - uri :: JPEGファイルの場所。TS-WLCAMシリーズの場合は「QwatchADDRESS」の部分を該当のIPアドレスに書き換えればOK
     - user :: ユーザー名
     - pass :: パスワード
-    - base :: 画像を保存するディレクトリ。%(name)sの部分は、上にある「name」で置換される。
+    - base :: 画像／動画を保存するディレクトリ。%(name)sの部分は、上にある「name」で置換される。EXPERIMENTSには各実験グループ名（とか用途）をいれるつもり。
 
-*** 画像の保存先
+*** 画像／動画の保存先
 
-    - 例 :: snapshots/CAMNAME/2015/03/11/2015-0311-2230-15.jpg
-    - スクリプト内部で日付ごとにリネームしている
-    - ブラウザで確認したい場合は、snapshots を公開ディレクトリへのシンボリックにするとよい
+    - スクリプト内部で日付ごとに管理している
+    - ファイルパスの例
+      - 画像 :: EXPERIMENTS/CAMNAME/snapshots/2015/03/11/2015-0311-2230-15.jpg
+      - 動画 :: EXPERIMENTS/CAMNAME/timelapse/2015-03-11.jpg
 
+    - ブラウザで確認したい場合は、experiments を公開ディレクトリへのシンボリックにするとよい
 #+begin_src bash
-$ ln -s ~/public_html/qwatch/snap snapthots
+$ ln -s ~/public_html/qwatch/snap experiments
 #+end_src
 
 *** 複数台カメラを設定する場合（みかくにん）
@@ -110,7 +143,7 @@ base = WEBHOME/%(name)s
 #+end_src
 
 
-** キャプチャを実行する
+** 画像をキャプチャする : qwcapture
 
    - confファイルを引数にして実行する
 
@@ -133,9 +166,16 @@ $ ./qwcapture.py QWCONF.conf QWCONF2.conf
 $ ./qwatch.py -h
 #+end_src
 
-** タイムラプス動画の作成
+** タイムラプス動画の作成 : qwtimelapse
 
-   - これから作る予定
+   - 日付とconfファイルを引数にして実行する
+   - 日付には、「today」「yesterday」「YYYY/mm/dd の書式」が使える
+   - 日付は *１個* しか指定できない（confファイルは複数指定できる）
+     - 基本的に毎日更新するため、複数日をまとめてやる必要が（とりあえず）ないと思うから
+
+  #+begin_src bash
+  $ ./qwtimelapse.py DATE QWCONF.conf
+  #+end_src
 
 ** cronに登録する
 
@@ -161,28 +201,25 @@ $ crontab -l > mycront.bk    ## Backup crontab
 
 *** 10分ごとに画像をキャプチャする場合
 
+    - QwatchCaptureのあるディレクトリまでのパスを指定する
+    - confファイルも指定する
+
 #+begin_src text
 QWDIR=      ## qwatch.py があるディレクトリを指定する
 QWCONFIGS=  ## confファイルを指定（複数指定できる、半角スペースで区切る（みかくにん））
-*/10 * * * * `cd $QWDIR && ./qwatch.py $QWCONFIG`
+
+*/10 * * * * `cd $QWDIR && ./qwcapture.py $QWCONFIG`
 #+end_src
 
-*** 1時間ごとにタイムラプス動画を作る場合（みかくにん）
+*** 1時間ごとにタイムラプス動画を作る場合
 
-    - 画像の保存先を日付ごとにしたので、これではできない
+    - 毎時5分に作成（キャプチャの実行と時間をずらしてある）
+    - 毎日00時08分に、前日の動画をまとめる（これも時間をずらしてある）
 
 #+begin_src text
-QWDIR=     ## qwatch.py があるディレクトリを指定する
-
-FFMPEG_OPT_IN="-y -f image2 -r 15"                          ## 入力ファイルオプション
-FFMPEG_OPT_OUT="-r 15 -an -vcodec libx264 -pix_fmt yuv420p" ## 出力ファイルオプション
-FFMPEG_OUT_FILE=video.mp4    ## 出力ファイル名
-
-5 * * * * `cd $QWDIR && ffmpeg ${FFMPEG_OPT_IN} -pattern_type glob -i 'snapshots/*.jpg' ${FFMPEG_OPT_OUT} ${FFMPEG_OUTFILE} && mv ${FFMPEG_OUTFILE} snapshots/`
+5 * * * * `cd $QWDIR && ./qwtimelapse.py today QWCONFIGS`
+8 0 * * * `cd $QWDIR && ./qwtimelapse.py yesterday QWCONFIGS`
 #+end_src
-
-    - 「-pettern_type glob -i 'snapshots/*.jpg'」の部分でどうしてもエラーが出てしまうので、入力オプションから外し、ベタ書きしている
-    - キャプチャの実行と時間をずらしてある（毎時５分）
 
 *** ログの確認
 
@@ -192,4 +229,30 @@ FFMPEG_OUT_FILE=video.mp4    ## 出力ファイル名
 $ tail /var/log/syslog
 $ sudo ls -ltrh /var/spool/nullmailer/queue/ | tail   ## ログファイル名、タイムスタンプ、サイズを確認する
 $ sudo less /var/spool/nullmailer/queue/LOGFILE       ## 上で調べたLOGFILE名の中には、cron実行時のログが吐き出されている
+#+end_src
+
+* その他
+
+** FFmpegのインストール
+
+*** MacOS Xの場合
+
+    - MacPortsを使って ffmpeg をインストールする
+      - variants はお好みで
+
+#+begin_src
+$ sudo port install ffmpeg
+#+end_src
+
+** Ubuntuの場合
+
+   - 14.04 LTS ではそのままではapt-getできないみたいなので、PPAリポジトリを追加する
+   - 詳しくは https://launchpad.net/~mc3man/+archive/ubuntu/trusty-media を読むこと
+     - 14.10 以上にアップグレードしないほうがいいらしい。その場合はクリーンインストールがオススメだそう。
+
+#+begin_src bash
+$ sudo add-apt-repository ppa:mc3man/trusty-media
+$ sudo apt-get update
+$ sudo apt-get dist-upgrade
+$ sudo apt-get install ffmpeg
 #+end_src

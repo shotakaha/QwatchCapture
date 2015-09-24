@@ -9,35 +9,45 @@ import qwatch
 ##################################################
 if __name__ == '__main__':
 
-    desc = 'Image capture for Qwatch webcamera.'
+    desc = 'Concat Images to make TimeLapse movie.'
     epi = 'What you have to prepare:\n'
-    epi += '  1) Prepare default.cfg based on example.cfg.\n'
-    epi += '  2) Prepare snapshots/ directory manually.\n'
+    epi += '  1) Prepare myconf.conf based on qwconf.example.\n'
     epi += 'For periodic capture:\n'
-    epi += '  3) Add to cron.\n'
+    epi += '  2) Add to cron.\n'
 
     parser = argparse.ArgumentParser(description=desc,
                                      epilog=epi,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument(dest='date',
+                        nargs=1,
+                        help='specify DATE in YYYY/mm/dd format')
     parser.add_argument(dest='conffile',
                         nargs='+',
                         help='specify CONFIGFILE')
-    parser.add_argument('-t', '--tries',
-                        dest='number',
+    parser.add_argument('-ifr', '--input-frame-rate',
+                        dest='ifr',
                         type=int,
-                        help='set number of retries to NUMBER (0 unlimits)')
-    parser.add_argument('-T', '--timeout',
-                        dest='seconds',
+                        help='set number of frames in input files')
+    parser.add_argument('-ofr', '--output-frame-rate',
+                        dest='ofr',
                         type=int,
-                        help='set all timeout values to SECONDS')
-    parser.add_argument('-a', '--append-log',
-                        dest='logfile',
-                        help='append messages to LOGFILE')
+                        help='set number of frames in output file')
+    parser.add_argument('-vc', '--vcodec',
+                        dest='vcodec',
+                        help='set vcodec of output file')
+    parser.add_argument('-pf', '--pix-fmt',
+                        dest='pixfmt',
+                        help='set pixel format of output file')
+    parser.add_argument('-ofn', '--output-filename',
+                        dest='ofn',
+                        help='set output filename')
+
     ## Set option defaults
-    parser.set_defaults(conffile='conf.example',
-                        number=1,
-                        seconds=10,
-                        logfile='qwwget.log')
+    parser.set_defaults(ifr=15,
+                        ofr=15,
+                        vcodec='libx264',
+                        pixfmt='yuv420p',
+                        ofn='video.mp4')
     ## Get args and options
     args = parser.parse_args()
 
@@ -68,10 +78,13 @@ if __name__ == '__main__':
                                   log=log)
 
         ## Set Options
-        qw.set_tries(args.number)
-        qw.set_timeout(args.seconds)
-        qw.set_logfile(args.logfile)
+        qw.set_ffmpeg(ifr=args.ifr,
+                      ofr=args.ofr,
+                      vcodec=args.vcodec,
+                      pixfmt=args.pixfmt,
+                      ofn=args.ofn)
+        qw.set_date(date=args.date[0])
 
         ## Run
         print(qw)
-        qw.capture()
+        qw.timelapse()
