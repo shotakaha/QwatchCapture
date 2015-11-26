@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     ## Print config files
     for f in args.conffile:
-        print f, os.path.exists(f)
+        print(f, os.path.exists(f))
 
     ## Read config files
     config = ConfigParser.SafeConfigParser()
