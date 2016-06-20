@@ -22,7 +22,7 @@ $ crontab mycron.txt
 
 # より詳しく
 
-[QwatchCapture - Read the Docs](http://qwatchcapture.readthedocs.org/ja/latest/ )を読んでください
+[KumaWatch - Read the Docs](http://kumawatch.readthedocs.io/ja/latest/)を読んでください
 
 
 # 備考
