@@ -22,9 +22,9 @@ $ crontab mycron.txt
 
 # より詳しく
 
-  [[http://qwatchcapture.readthedocs.org/ja/latest/][QwatchCapture - Read the Docs]] に書いておきました
+[QwatchCapture - Read the Docs](http://qwatchcapture.readthedocs.org/ja/latest/ )を読んでください
 
 
-## 備考
+# 備考
 
 2016-06-20 : QwatchCapture -> KumaWatch に改名
