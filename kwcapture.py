@@ -4,12 +4,12 @@
 import os
 import argparse
 import ConfigParser
-import qwatch
+import kwatch
 
 ##################################################
 if __name__ == '__main__':
 
-    desc = 'Image capture for Qwatch webcamera.'
+    desc = 'Image capture for webcamera.'
     epi = 'What you have to prepare:\n'
     epi += '  1) Prepare default.cfg based on example.cfg.\n'
     epi += '  2) Prepare snapshots/ directory manually.\n'
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     config = ConfigParser.SafeConfigParser()
     config.read(args.conffile)
 
-    ## Set QwatchCaptures
+    ## Set KumaWatch
     sections = config.sections()
     for section in sections:
         name = section
@@ -59,8 +59,8 @@ if __name__ == '__main__':
         base = config.get(section, 'base')
         log = config.get(section, 'log')
 
-        ## Init Qwatch
-        qw = qwatch.QwatchCapture(name=name,
+        ## Init KumaWatch
+        kw = kwatch.KumaWatch(name=name,
                                   user=user,
                                   passwd=passwd,
                                   uri=uri,
@@ -68,10 +68,10 @@ if __name__ == '__main__':
                                   log=log)
 
         ## Set Options
-        qw.set_tries(args.number)
-        qw.set_timeout(args.seconds)
-        qw.set_logfile(args.logfile)
+        kw.set_tries(args.number)
+        kw.set_timeout(args.seconds)
+        kw.set_logfile(args.logfile)
 
         ## Run
-        print(qw)
-        qw.capture()
+        print(kw)
+        kw.capture()
