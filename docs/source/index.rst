@@ -13,6 +13,7 @@ Welcome to KumaWatch's documentation!
    :maxdepth: 2
 
    quickstart
+   prerequisites
    environment
    usage
    details
