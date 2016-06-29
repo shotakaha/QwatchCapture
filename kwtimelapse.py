@@ -4,7 +4,7 @@
 import os
 import argparse
 import ConfigParser
-import kwatch
+import kumawatch as kwatch
 
 ##################################################
 if __name__ == '__main__':
