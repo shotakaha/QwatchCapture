@@ -18,6 +18,7 @@ Welcome to KumaWatch's documentation!
    usage
    details
    ffmpeg
+   kumawatch
 
 
 
