@@ -54,5 +54,7 @@ docs/_build/
 target/
 
 # KumaWatch testdir
+.DS_Store
 kwtest.conf
 kwtest/
+
