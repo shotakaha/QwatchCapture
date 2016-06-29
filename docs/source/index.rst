@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ==================================================
-Welcome to QwatchCapture's documentation!
+Welcome to KumaWatch's documentation!
 ==================================================
 
 ウェブカメラを使って定点観測＆タイムラプス動画の自動生成ができるPythonスクリプト
@@ -13,10 +13,12 @@ Welcome to QwatchCapture's documentation!
    :maxdepth: 2
 
    quickstart
+   prerequisites
    environment
    usage
    details
    ffmpeg
+   kumawatch
 
 
 

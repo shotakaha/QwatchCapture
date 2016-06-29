@@ -1,10 +1,10 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python
 # coding: utf-8
 
 import os
 import argparse
 import ConfigParser
-import qwatch
+import kumawatch as kwatch
 
 ##################################################
 if __name__ == '__main__':
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     config = ConfigParser.SafeConfigParser()
     config.read(args.conffile)
 
-    ## Set QwatchCaptures
+    ## Set KumaWatch
     sections = config.sections()
     for section in sections:
         name = section
@@ -69,8 +69,8 @@ if __name__ == '__main__':
         base = config.get(section, 'base')
         log = config.get(section, 'log')
 
-        ## Init Qwatch
-        qw = qwatch.QwatchCapture(name=name,
+        ## Init KumaWatch
+        kw = kwatch.KumaWatch(name=name,
                                   user=user,
                                   passwd=passwd,
                                   uri=uri,
@@ -78,13 +78,13 @@ if __name__ == '__main__':
                                   log=log)
 
         ## Set Options
-        qw.set_ffmpeg(ifr=args.ifr,
+        kw.set_ffmpeg(ifr=args.ifr,
                       ofr=args.ofr,
                       vcodec=args.vcodec,
                       pixfmt=args.pixfmt,
                       ofn=args.ofn)
-        qw.set_date(date=args.date[0])
+        kw.set_date(date=args.date[0])
 
         ## Run
-        print(qw)
-        qw.timelapse()
+        print(kw)
+        kw.timelapse()

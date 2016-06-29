@@ -52,3 +52,7 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# KumaWatch testdir
+kwtest.conf
+kwtest/
