@@ -38,7 +38,6 @@
         base = config.get(section, 'base')
         log = config.get(section, 'log')
 
-.. py:class:: KumaWatch(object)
 
 
 .. py:function:: def __init__(self, name, user, passwd, uri, base, log):
@@ -59,3 +58,6 @@
    :param str mp4file: MP4ファイル名 ( :file:`os.path.join(self.base, mp4fmt)` )
 
 .. py:method:: self.set_logger()
+
+
+.. autoclass:: kwatch.KumaWatch
