@@ -4,7 +4,7 @@ Python2からPython3へ
 
 Python2からPython3対応へ変更した時のメモ。
 
-まず、``2to3``コマンドを実行して、変更箇所を調べた。
+まず、 ``2to3`` コマンドを実行して、変更箇所を調べた。
 
 .. code:: sh
 
@@ -49,6 +49,9 @@ Python2では :mod:`ConfigParser` というモジュール名だったが、Pyth
 
 OSErrorの書き方の変更
 ==================================================
+
+:Python2.7の場合: https://docs.python.org/2.7/library/exceptions.html
+:Python3.5の場合: https://docs.python.org/3.5/library/exceptions.html
 
 
 print文の変更
