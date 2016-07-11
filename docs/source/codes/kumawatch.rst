@@ -2,6 +2,6 @@ kumawatch module
 ================
 
 .. automodule:: kumawatch
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
