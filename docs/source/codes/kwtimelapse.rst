@@ -1,7 +1,8 @@
 kwtimelapse module
 ==================
 
-.. automodule:: kwtimelapse
-    :members:
-    :undoc-members:
-    :show-inheritance:
+..
+   .. automodule:: kwtimelapse
+       :members:
+       :undoc-members:
+       :show-inheritance:
