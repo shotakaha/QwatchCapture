@@ -1,0 +1,58 @@
+==================================================
+Python2からPython3へ
+==================================================
+
+Python2からPython3対応へ変更した時のメモ。
+
+まず、``2to3``コマンドを実行して、変更箇所を調べた。
+
+.. code:: sh
+
+   $ 2to3 kumawatch.py
+   ...
+   RefactoringTool: Refactored kumawatch.py
+   --- kumawatch.py	(original)
+   +++ kumawatch.py	(refactored)
+
+   @@ -5,7 +5,7 @@
+   -import ConfigParser
+   +import configparser
+
+   @@ -149,7 +149,8 @@
+   -except OSError as (errno, strerror):
+   +except OSError as xxx_todo_changeme:
+   +    (errno, strerror) = xxx_todo_changeme.args
+        ...
+
+   @@ -189,7 +190,8 @@
+   -except OSError as (errno, strerror):
+   +except OSError as xxx_todo_changeme1:
+   +    (errno, strerror) = xxx_todo_changeme1.args
+        ...
+
+   @@ -232,10 +234,10 @@
+   ## Print config files
+   for f in args.conffile:
+   -    print(f, os.path.exists(f))
+   +    print((f, os.path.exists(f)))
+
+   ## Read config files
+   -    config = ConfigParser.SafeConfigParser()
+   +    config = configparser.SafeConfigParser()
+
+
+configparserモジュールへの変更
+==================================================
+
+Python2では :mod:`ConfigParser` というモジュール名だったが、Python3では :mod:`configparser` に変更された。
+
+
+OSErrorの書き方の変更
+==================================================
+
+
+print文の変更
+==================================================
+
+print文からprint関数に変更になったため、 ``(...)`` で括らないといけなくなった。
+ただ、print文の状態でも括弧でくくってよかったため（たぶん）、この部分に限っては変更しなくていいはず。
