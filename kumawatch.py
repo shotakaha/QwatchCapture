@@ -5,7 +5,7 @@ import sys
 import time
 import datetime
 import argparse
-import ConfigParser
+import configparser
 import logging
 
 ##################################################
@@ -235,7 +235,7 @@ if __name__ == '__main__':
         print(f, os.path.exists(f))
 
     ## Read config files
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.SafeConfigParser()
     config.read(args.conffile)
 
     ## Set KumaWatch

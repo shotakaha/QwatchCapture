@@ -1,7 +1,8 @@
 kwcapture module
 ================
 
-.. automodule:: kwcapture
-    :members:
-    :undoc-members:
-    :show-inheritance:
+..
+   .. automodule:: kwcapture
+       :members:
+       :undoc-members:
+       :show-inheritance:
