@@ -11,6 +11,12 @@ MacOS Xの場合
 
    $ sudo port install ffmpeg
 
+- Homebrewを使って :command:`ffmpeg` をインストールする（ :command:`Options` はお好みで）
+
+.. code-block:: bash
+
+   $ brew install ffmpeg
+
 
 Ubuntuの場合
 --------------------------------------------------
