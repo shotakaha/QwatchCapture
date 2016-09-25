@@ -1,7 +1,8 @@
+==================================================
 kumawatch module
-================
+==================================================
 
-.. automodule:: kumawatch
-   :members:
-   :undoc-members:
-   :show-inheritance:
+
+.. automodule:: kumawatch.kumawatch
+
+.. automodule:: kumawatch.kwcapture

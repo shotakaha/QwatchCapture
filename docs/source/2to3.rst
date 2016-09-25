@@ -2,11 +2,14 @@
 Python2からPython3へ
 ==================================================
 
-Python2からPython3対応へ変更した時のメモ。
+Python2からPython3対応へ変更した時のメモです。
 
-まず、 ``2to3`` コマンドを実行して、変更箇所を調べた。
+変更すべき箇所の確認
+==================================================
 
-.. code:: sh
+``2to3`` コマンドを実行して、変更すべき箇所を確認
+
+.. code-block:: py
 
    $ 2to3 kumawatch.py
    ...
@@ -44,7 +47,7 @@ Python2からPython3対応へ変更した時のメモ。
 configparserモジュールへの変更
 ==================================================
 
-.. code:: py
+.. code-block:: py
 
    - import ConfigParser
    + import configparser
@@ -56,12 +59,12 @@ Python2では :mod:`ConfigParser` というモジュール名だったが、Pyth
 OSErrorの書き方の変更
 ==================================================
 
-.. code:: py
+.. code-block:: py
 
    - except OSError as (errno, strerror):
    + except OSError(errno, strerror):
 
-as が不要だった
+``as`` が不要だった
 
 :Python2.7の場合: https://docs.python.org/2.7/library/exceptions.html
 :Python3.5の場合: https://docs.python.org/3.5/library/exceptions.html
