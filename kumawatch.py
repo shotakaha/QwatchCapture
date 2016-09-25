@@ -149,7 +149,7 @@ class KumaWatch(object):
             message = 'Rename ... {0} -> {jpgfile}'.format(ss, **conf)
             self.logger.info(message)
             os.renames(ss, '{jpgfile}'.format(**conf))
-        except OSError as (errno, strerror):
+        except OSError(errno, strerror):
             message = 'OSError({0}): {1}'.format(errno, strerror)
             self.logger.error(message)
         else:
@@ -189,7 +189,7 @@ class KumaWatch(object):
             message = 'Rename ... {ofn} -> {0}'.format(mp4file, **conf)
             self.logger.info(message)
             os.renames('{ofn}'.format(**conf), mp4file)
-        except OSError as (errno, strerror):
+        except OSError(errno, strerror):
             message = 'OSError({0}): {1}'.format(errno, strerror)
             self.logger.error(message)
         else:
