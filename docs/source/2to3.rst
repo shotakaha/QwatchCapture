@@ -44,11 +44,24 @@ Python2からPython3対応へ変更した時のメモ。
 configparserモジュールへの変更
 ==================================================
 
+.. code:: py
+
+   - import ConfigParser
+   + import configparser
+
+
 Python2では :mod:`ConfigParser` というモジュール名だったが、Python3では :mod:`configparser` に変更された。
 
 
 OSErrorの書き方の変更
 ==================================================
+
+.. code:: py
+
+   - except OSError as (errno, strerror):
+   + except OSError(errno, strerror):
+
+as が不要だった
 
 :Python2.7の場合: https://docs.python.org/2.7/library/exceptions.html
 :Python3.5の場合: https://docs.python.org/3.5/library/exceptions.html
