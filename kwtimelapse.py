@@ -1,9 +1,9 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # coding: utf-8
 
 import os
 import argparse
-import ConfigParser
+import configparser
 import kumawatch as kwatch
 
 ##################################################
@@ -56,7 +56,7 @@ if __name__ == '__main__':
         print(f, os.path.exists(f))
 
     ## Read config files
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.SafeConfigParser()
     config.read(args.conffile)
 
     ## Set KumaWatch
