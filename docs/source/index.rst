@@ -18,8 +18,7 @@ Welcome to KumaWatch's documentation!
    usage
    details
    ffmpeg
-   codes/kumawatch
-   2to3
+   codes/modules
 
 
 
