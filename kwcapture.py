@@ -8,11 +8,6 @@ Examples:
     $ python kwcapture.py kwtest.conf
     $ python3 kwcapture.py kwtest.conf
 
-
-ToDo:
-
-    Replace ConfigParser with configparser to work with python3
-
 '''
 
 import os
