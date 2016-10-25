@@ -1,6 +1,16 @@
 #! /usr/bin/env python3
 # coding: utf-8
 
+
+'''
+Examples:
+
+    $ ./kwtimelapse.py kwtest.conf today/yesterday/21120903
+    $ python kwtimelapse.py kwtest.conf today/yesterday/21120903
+    $ python3 kwtimelapse.py kwtest.conf today/yesterday/21120903
+
+'''
+
 import os
 import argparse
 import configparser
