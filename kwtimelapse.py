@@ -66,7 +66,7 @@ if __name__ == '__main__':
         uri = config.get(section, 'uri')
         user = config.get(section, 'user')
         passwd = config.get(section, 'pass')
-        base = config.get(section, 'base')
+        camd= config.get(section, 'camd')
         log = config.get(section, 'log')
 
         ## Init KumaWatch
@@ -74,7 +74,7 @@ if __name__ == '__main__':
                                   user=user,
                                   passwd=passwd,
                                   uri=uri,
-                                  base=base,
+                                  camd=camd,
                                   log=log)
 
         ## Set Options
