@@ -1,5 +1,13 @@
 # coding: utf-8
 
+"""
+
+ToDo:
+    * ``camd`` が存在しないときの ``FileNotFoundError`` のエラー処理
+    * キャプチャに失敗してリネームできないときの ``FileNotFoundError`` のエラー処理
+
+"""
+
 import os
 import sys
 import time
@@ -14,7 +22,7 @@ class KumaWatch(object):
     Image capture for webcamera.
     '''
     ##############################
-    def __init__(self, name, user, passwd, uri, base, log):
+    def __init__(self, name, user, passwd, uri, camd, log):
         '''
         Configure KumaWatch.
         '''
@@ -22,13 +30,13 @@ class KumaWatch(object):
         self.user = user
         self.passwd = passwd
         self.uri = uri
-        self.base = base
+        self.camd = camd
         self.log = log
 
         jpgfmt = 'snapshots/%Y/%m/%d/%Y-%m%d-%H%M-%S.jpg'
         mp4fmt = 'timelapse/%Y-%m-%d.mp4'
-        self.jpgfile = os.path.join(self.base, jpgfmt)
-        self.mp4file = os.path.join(self.base, mp4fmt)
+        self.jpgfile = os.path.join(self.camd, jpgfmt)
+        self.mp4file = os.path.join(self.camd, mp4fmt)
         self.set_logger()
 
     ##############################
@@ -39,7 +47,7 @@ class KumaWatch(object):
         self.logger.info(20 * '-')
         self.logger.info('name : {0}'.format(self.name))
         self.logger.info('uri  : {0}'.format(self.uri))
-        self.logger.info('base : {0}'.format(self.base))
+        self.logger.info('camd : {0}'.format(self.camd))
         self.logger.info('log  : {0}'.format(self.log))
         return ''
 
@@ -120,7 +128,7 @@ class KumaWatch(object):
         '''
         To capture:
         $ wget --http-user=USER --http-password=PASS URI
-        $ mv snapshot.jpg $BASE/YYYY/mm/dd/YYYY-mmdd-HHMM-SS.jpg
+        $ mv snapshot.jpg $CAMD/YYYY/mm/dd/YYYY-mmdd-HHMM-SS.jpg
 
         '''
         ## config for wget
@@ -159,8 +167,8 @@ class KumaWatch(object):
     def timelapse(self):
         '''
         To ffmpeg:
-        $ ffmpeg -y -f image2 -r 15 -pattern_type glob -i '$BASE/YYYY/mm/dd/*.jpg' -r 15 -an -vcodec libx264 -pix_fmt yuv420p video.mp4
-        $ mv video.mp4 $BASE/YYYY-mm-dd.mp4
+        $ ffmpeg -y -f image2 -r 15 -pattern_type glob -i '$CAMD/YYYY/mm/dd/*.jpg' -r 15 -an -vcodec libx264 -pix_fmt yuv420p video.mp4
+        $ mv video.mp4 $CAMD/YYYY-mm-dd.mp4
         '''
         ## config for ffmpeg
         conf = {'ifr':self.ifr,
@@ -245,7 +253,7 @@ if __name__ == '__main__':
         uri = config.get(section, 'uri')
         user = config.get(section, 'user')
         passwd = config.get(section, 'pass')
-        base = config.get(section, 'base')
+        camd = config.get(section, 'camd')
         log = config.get(section, 'log')
 
         ## Init KumaWatch
@@ -253,7 +261,7 @@ if __name__ == '__main__':
                            user=user,
                            passwd=passwd,
                            uri=uri,
-                           base=base,
+                           camd=camd,
                            log=log)
 
         ## Set Options
