@@ -41,6 +41,15 @@ class KumaWatch(object):
 
     ##############################
     def __str__(self):
+        text = ''
+        text += 'name : {0}'.format(self.name)
+        text += 'uri  : {0}'.format(self.uri)
+        text += 'camd : {0}'.format(self.camd)
+        text += 'log  : {0}'.format(self.log)
+        return text
+
+    ##############################
+    def write_log(self):
         '''
         Print initial configurations.
         '''
@@ -49,7 +58,6 @@ class KumaWatch(object):
         self.logger.info('uri  : {0}'.format(self.uri))
         self.logger.info('camd : {0}'.format(self.camd))
         self.logger.info('log  : {0}'.format(self.log))
-        return ''
 
     ##############################
     def set_logger(self):
@@ -270,5 +278,5 @@ if __name__ == '__main__':
         kw.set_logfile(args.logfile)
 
         ## Run
-        print(kw)
+        print(str(kw))
         kw.capture()
