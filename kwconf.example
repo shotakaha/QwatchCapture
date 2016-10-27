@@ -7,7 +7,7 @@ user = $USER
 pass = $PASS
 imgd = /tmp    # change to your image dir
 camd = %(imgd)s/%(name)s
-log  = %(camd)s/qwlatest.log
+log  = %(camd)s/kwlatest.log
 
 ## You can easily add another WEBCAM
 # [$WEBCAM2]
@@ -15,6 +15,6 @@ log  = %(camd)s/qwlatest.log
 # uri = http://$QW-ADDRESS-2/snapshot.jpg
 # user = $USER2
 # pass = $PASS2
-# home = /tmp    # change
-# base = $(home)s/%(name)s
-# log = %(base)s/qwlatest.log
+# imgd = /tmp    # change to your image dir
+# camd = %(imgd)s/%(name)s
+# log  = %(camd)s/kwlatest.log
