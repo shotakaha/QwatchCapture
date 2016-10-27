@@ -1,5 +1,13 @@
 # coding: utf-8
 
+"""
+
+ToDo:
+    * ``camd`` が存在しないときの ``FileNotFoundError`` のエラー処理
+    * キャプチャに失敗してリネームできないときの ``FileNotFoundError`` のエラー処理
+
+"""
+
 import os
 import sys
 import time
