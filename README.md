@@ -28,3 +28,8 @@ $ crontab mycron.txt
 # 備考
 
 2016-06-20 : QwatchCapture -> KumaWatch に改名
+
+# ToDo
+
+- `__str__` メソッドを適切に使う
+- 複数の confファイル を読み込めるかテストする
