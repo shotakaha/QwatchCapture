@@ -56,5 +56,9 @@ target/
 # KumaWatch testdir
 .DS_Store
 kwtest.conf
+kwtest.cron
 kwtest/
 
+# Test config
+/b2.conf
+/pb.conf
